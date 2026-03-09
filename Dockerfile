@@ -1,15 +1,15 @@
-FROM node:alpine
+FROM 
 
-RUN corepack enable && corepack prepare pnpm@10.30.3 --activate
+RUN 
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY 
 
-RUN pnpm install --frozen-lockfile
+RUN 
 
 COPY . .
 
 EXPOSE 3000
 
-CMD ["pnpm", "run", "dev"]
+CMD []

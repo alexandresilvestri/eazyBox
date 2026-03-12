@@ -1,0 +1,18 @@
+current directory: /home/alexandre/repos/eazyBox/vendor/bundle/ruby/3.4.0/gems/bindex-0.8.1/ext/skiptrace
+/usr/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /home/alexandre/repos/eazyBox/vendor/bundle/ruby/3.4.0/gems/bindex-0.8.1/ext/skiptrace
+make DESTDIR\= sitearchdir\=./.gem.20260312-71048-8f6kzi sitelibdir\=./.gem.20260312-71048-8f6kzi clean
+
+current directory: /home/alexandre/repos/eazyBox/vendor/bundle/ruby/3.4.0/gems/bindex-0.8.1/ext/skiptrace
+make DESTDIR\= sitearchdir\=./.gem.20260312-71048-8f6kzi sitelibdir\=./.gem.20260312-71048-8f6kzi
+compiling cruby.c
+linking shared-object skiptrace/internal/cruby.so
+
+current directory: /home/alexandre/repos/eazyBox/vendor/bundle/ruby/3.4.0/gems/bindex-0.8.1/ext/skiptrace
+make DESTDIR\= sitearchdir\=./.gem.20260312-71048-8f6kzi sitelibdir\=./.gem.20260312-71048-8f6kzi install
+/usr/bin/install -c -m 0755 cruby.so ./.gem.20260312-71048-8f6kzi/skiptrace/internal
+
+current directory: /home/alexandre/repos/eazyBox/vendor/bundle/ruby/3.4.0/gems/bindex-0.8.1/ext/skiptrace
+make DESTDIR\= sitearchdir\=./.gem.20260312-71048-8f6kzi sitelibdir\=./.gem.20260312-71048-8f6kzi clean

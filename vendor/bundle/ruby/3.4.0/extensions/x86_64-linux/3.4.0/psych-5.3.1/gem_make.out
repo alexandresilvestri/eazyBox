@@ -1,0 +1,29 @@
+current directory: /home/alexandre/repos/eazyBox/vendor/bundle/ruby/3.4.0/gems/psych-5.3.1/ext/psych
+/usr/bin/ruby extconf.rb
+checking for pkg-config for yaml-0.1... [" ", "", "-lyaml"]
+creating Makefile
+
+current directory: /home/alexandre/repos/eazyBox/vendor/bundle/ruby/3.4.0/gems/psych-5.3.1/ext/psych
+make DESTDIR\= sitearchdir\=./.gem.20260312-71048-qiumo0 sitelibdir\=./.gem.20260312-71048-qiumo0 clean
+cd libyaml && make clean
+/bin/sh: line 1: cd: libyaml: No such file or directory
+make: [Makefile:287: clean-so] Error 1 (ignored)
+
+current directory: /home/alexandre/repos/eazyBox/vendor/bundle/ruby/3.4.0/gems/psych-5.3.1/ext/psych
+make DESTDIR\= sitearchdir\=./.gem.20260312-71048-qiumo0 sitelibdir\=./.gem.20260312-71048-qiumo0
+compiling psych.c
+compiling psych_emitter.c
+compiling psych_parser.c
+compiling psych_to_ruby.c
+compiling psych_yaml_tree.c
+linking shared-object psych.so
+
+current directory: /home/alexandre/repos/eazyBox/vendor/bundle/ruby/3.4.0/gems/psych-5.3.1/ext/psych
+make DESTDIR\= sitearchdir\=./.gem.20260312-71048-qiumo0 sitelibdir\=./.gem.20260312-71048-qiumo0 install
+/usr/bin/install -c -m 0755 psych.so ./.gem.20260312-71048-qiumo0
+
+current directory: /home/alexandre/repos/eazyBox/vendor/bundle/ruby/3.4.0/gems/psych-5.3.1/ext/psych
+make DESTDIR\= sitearchdir\=./.gem.20260312-71048-qiumo0 sitelibdir\=./.gem.20260312-71048-qiumo0 clean
+cd libyaml && make clean
+/bin/sh: line 1: cd: libyaml: No such file or directory
+make: [Makefile:287: clean-so] Error 1 (ignored)

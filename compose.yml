@@ -1,0 +1,30 @@
+services:
+  web:
+    build: .
+    ports:
+      - "3000:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://eazybox:eazybox@db:5432/eazybox
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+
+  db:
+    image: postgres:17
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: eazybox
+      POSTGRES_PASSWORD: eazybox
+      POSTGRES_DB: eazybox
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eazybox -d eazybox"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

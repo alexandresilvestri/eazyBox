@@ -4,7 +4,7 @@
   "dockerComposeFile": "../compose.yml",
 
   "service": "web",
-  "workspaceFolder": "/app",
+  "workspaceFolder": "/rails",
 
   "runServices": ["web", "db"],
 

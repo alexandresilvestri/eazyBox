@@ -85,3 +85,35 @@ setup:
 
 clean:
 	docker compose down -v
+
+help:
+	@echo "  up                 Start all services (detached)"
+	@echo "  up-attached        Start all services (attached, shows logs)"
+	@echo "  down               Stop and remove containers"
+	@echo "  restart            Restart all services"
+	@echo "  build              Rebuild images"
+	@echo "  build-no-cache     Rebuild images from scratch"
+	@echo "  logs               Tail logs from all services"
+	@echo "  logs-web           Tail logs from web only"
+	@echo "  ps                 Show running containers"
+	@echo "  console            Open Rails console"
+	@echo "  sh                 Open a shell in the web container"
+	@echo "  routes             List all routes"
+	@echo "  db-create          Create the database"
+	@echo "  db-migrate         Run pending migrations"
+	@echo "  db-rollback        Rollback last migration"
+	@echo "  db-seed            Run seeds"
+	@echo "  db-reset           Drop, create, migrate, and seed"
+	@echo "  db-prepare         Create (if needed) and migrate"
+	@echo "  db-status          Show migration status"
+	@echo "  db-console         Open psql console"
+	@echo "  test               Run the test suite"
+	@echo "  test-prepare       Prepare the test database"
+	@echo "  lint               Run RuboCop"
+	@echo "  lint-fix           Run RuboCop with auto-correct"
+	@echo "  security           Run Brakeman security scan"
+	@echo "  audit              Run bundle-audit"
+	@echo "  setup              Build, start, and prepare the database"
+	@echo "  clean              Stop containers and remove volumes"
+
+.DEFAULT_GOAL := help

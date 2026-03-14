@@ -79,6 +79,9 @@ security:
 audit:
 	docker compose exec web bin/bundler-audit
 
+bundle:
+	docker compose run --rm web bundle install
+
 setup:
 	docker compose up -d --build
 	docker compose exec web bin/rails db:prepare
@@ -113,6 +116,7 @@ help:
 	@echo "  lint-fix           Run RuboCop with auto-correct"
 	@echo "  security           Run Brakeman security scan"
 	@echo "  audit              Run bundle-audit"
+	@echo "  bundle             Run bundle install"
 	@echo "  setup              Build, start, and prepare the database"
 	@echo "  clean              Stop containers and remove volumes"
 

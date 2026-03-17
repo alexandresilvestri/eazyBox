@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  day_of_week: 1
+  start_time: MyString
+  max_capacity: 1
+
+two:
+  day_of_week: 1
+  start_time: MyString
+  max_capacity: 1

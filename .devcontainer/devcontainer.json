@@ -35,6 +35,7 @@
         "christian-kohler.path-intellisense",
         "eamodio.gitlens",
         "yzhang.markdown-all-in-one",
+        "Anthropic.claude-code"
       ]
     }
   },

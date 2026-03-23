@@ -65,6 +65,6 @@ class SessionsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def session_params
-      params.expect(session: [ :start_time, :max_capacity, :name, :archived_at, :deleted_at ])
+      params.expect(session: [ :start_time, :max_capacity, :name ])
     end
 end

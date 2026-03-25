@@ -3,7 +3,7 @@ class WorkoutsController < ApplicationController
 
   # GET /workouts or /workouts.json
   def index
-    @workouts = Workout.all
+    @workouts = Workout.kept
   end
 
   # GET /workouts/1 or /workouts/1.json
@@ -49,7 +49,7 @@ class WorkoutsController < ApplicationController
 
   # DELETE /workouts/1 or /workouts/1.json
   def destroy
-    @workout.destroy!
+    @workout.discard
 
     respond_to do |format|
       format.html { redirect_to workouts_path, notice: "Workout was successfully destroyed.", status: :see_other }

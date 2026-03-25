@@ -1,2 +1,0 @@
-class WeeklySchedule < ApplicationRecord
-end

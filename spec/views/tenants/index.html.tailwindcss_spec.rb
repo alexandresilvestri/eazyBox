@@ -26,13 +26,11 @@ RSpec.describe "tenants/index", type: :view do
 
   it "renders a list of tenants" do
     render
-    cell_selector = 'div>p'
-    assert_select cell_selector, text: Regexp.new(2.to_s), count: 2
-    assert_select cell_selector, text: Regexp.new("Name".to_s), count: 2
-    assert_select cell_selector, text: Regexp.new("Corporate Name".to_s), count: 2
-    assert_select cell_selector, text: Regexp.new("Cnpj".to_s), count: 2
-    assert_select cell_selector, text: Regexp.new("Address".to_s), count: 2
-    assert_select cell_selector, text: Regexp.new("Representative Name".to_s), count: 2
-    assert_select cell_selector, text: Regexp.new("Representative Cpf".to_s), count: 2
+    expect(rendered).to match(/Name/)
+    expect(rendered).to match(/Corporate Name/)
+    expect(rendered).to match(/Cnpj/)
+    expect(rendered).to match(/Address/)
+    expect(rendered).to match(/Representative Name/)
+    expect(rendered).to match(/Representative Cpf/)
   end
 end

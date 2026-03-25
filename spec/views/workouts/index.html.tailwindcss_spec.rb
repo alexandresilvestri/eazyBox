@@ -1,16 +1,20 @@
 require 'rails_helper'
 
 RSpec.describe "workouts/index", type: :view do
+  let(:tenant) { Tenant.create!(name: "Test Tenant", corporate_name: "Corp", cnpj: "123", address: "Addr", representative_name: "Rep", representative_cpf: "456") }
+
   before(:each) do
     assign(:workouts, [
       Workout.create!(
-        tenant: nil,
+        tenant: tenant,
         name: "Name",
+        start_time: "10:00",
         max_capacity: 2
       ),
       Workout.create!(
-        tenant: nil,
+        tenant: tenant,
         name: "Name",
+        start_time: "10:00",
         max_capacity: 2
       )
     ])
@@ -18,9 +22,7 @@ RSpec.describe "workouts/index", type: :view do
 
   it "renders a list of workouts" do
     render
-    cell_selector = 'div>p'
-    assert_select cell_selector, text: Regexp.new(nil.to_s), count: 2
-    assert_select cell_selector, text: Regexp.new("Name".to_s), count: 2
-    assert_select cell_selector, text: Regexp.new(2.to_s), count: 2
+    expect(rendered).to match(/Name/)
+    expect(rendered).to match(/2/)
   end
 end

@@ -1,10 +1,12 @@
 require 'rails_helper'
 
 RSpec.describe "workouts/edit", type: :view do
+  let(:tenant) { Tenant.create!(name: "Test Tenant", corporate_name: "Corp", cnpj: "123", address: "Addr", representative_name: "Rep", representative_cpf: "456") }
   let(:workout) {
     Workout.create!(
-      tenant: nil,
+      tenant: tenant,
       name: "MyString",
+      start_time: "10:00",
       max_capacity: 1
     )
   }

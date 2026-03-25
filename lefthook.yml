@@ -1,0 +1,8 @@
+pre-commit:
+  parallel: false
+  commands:
+    rubocop:
+      glob: "*.rb"
+      run: docker compose exec -T web bundle exec rubocop -A {staged_files} && git add {staged_files}
+    rspec:
+      run: docker compose run --rm -e RAILS_ENV=test test

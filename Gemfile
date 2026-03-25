@@ -44,3 +44,5 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "discard", "~> 1.4"

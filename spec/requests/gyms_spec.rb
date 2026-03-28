@@ -12,9 +12,9 @@ require 'rails_helper'
 # of tools you can use to make these specs even more expressive, but we're
 # sticking to rails and rspec-rails APIs to keep things simple and stable.
 
-RSpec.describe "/tenants", type: :request do
+RSpec.describe "/gyms", type: :request do
   # This should return the minimal set of attributes required to create a valid
-  # Tenant. As you add validations to Tenant, be sure to
+  # Gym. As you add validations to Gym, be sure to
   # adjust the attributes here as well.
   let(:valid_attributes) {
     skip("Add a hash of attributes valid for your model")
@@ -26,58 +26,58 @@ RSpec.describe "/tenants", type: :request do
 
   describe "GET /index" do
     it "renders a successful response" do
-      Tenant.create! valid_attributes
-      get tenants_url
+      Gym.create! valid_attributes
+      get gyms_url
       expect(response).to be_successful
     end
   end
 
   describe "GET /show" do
     it "renders a successful response" do
-      tenant = Tenant.create! valid_attributes
-      get tenant_url(tenant)
+      gym = Gym.create! valid_attributes
+      get gym_url(gym)
       expect(response).to be_successful
     end
   end
 
   describe "GET /new" do
     it "renders a successful response" do
-      get new_tenant_url
+      get new_gym_url
       expect(response).to be_successful
     end
   end
 
   describe "GET /edit" do
     it "renders a successful response" do
-      tenant = Tenant.create! valid_attributes
-      get edit_tenant_url(tenant)
+      gym = Gym.create! valid_attributes
+      get edit_gym_url(gym)
       expect(response).to be_successful
     end
   end
 
   describe "POST /create" do
     context "with valid parameters" do
-      it "creates a new Tenant" do
+      it "creates a new Gym" do
         expect {
-          post tenants_url, params: { tenant: valid_attributes }
-        }.to change(Tenant, :count).by(1)
+          post gyms_url, params: { gym: valid_attributes }
+        }.to change(Gym, :count).by(1)
       end
 
-      it "redirects to the created tenant" do
-        post tenants_url, params: { tenant: valid_attributes }
-        expect(response).to redirect_to(tenant_url(Tenant.last))
+      it "redirects to the created gym" do
+        post gyms_url, params: { gym: valid_attributes }
+        expect(response).to redirect_to(gym_url(Gym.last))
       end
     end
 
     context "with invalid parameters" do
-      it "does not create a new Tenant" do
+      it "does not create a new Gym" do
         expect {
-          post tenants_url, params: { tenant: invalid_attributes }
-        }.to change(Tenant, :count).by(0)
+          post gyms_url, params: { gym: invalid_attributes }
+        }.to change(Gym, :count).by(0)
       end
 
       it "renders a response with 422 status (i.e. to display the 'new' template)" do
-        post tenants_url, params: { tenant: invalid_attributes }
+        post gyms_url, params: { gym: invalid_attributes }
         expect(response).to have_http_status(:unprocessable_content)
       end
     end
@@ -89,42 +89,42 @@ RSpec.describe "/tenants", type: :request do
         skip("Add a hash of attributes valid for your model")
       }
 
-      it "updates the requested tenant" do
-        tenant = Tenant.create! valid_attributes
-        patch tenant_url(tenant), params: { tenant: new_attributes }
-        tenant.reload
+      it "updates the requested gym" do
+        gym = Gym.create! valid_attributes
+        patch gym_url(gym), params: { gym: new_attributes }
+        gym.reload
         skip("Add assertions for updated state")
       end
 
-      it "redirects to the tenant" do
-        tenant = Tenant.create! valid_attributes
-        patch tenant_url(tenant), params: { tenant: new_attributes }
-        tenant.reload
-        expect(response).to redirect_to(tenant_url(tenant))
+      it "redirects to the gym" do
+        gym = Gym.create! valid_attributes
+        patch gym_url(gym), params: { gym: new_attributes }
+        gym.reload
+        expect(response).to redirect_to(gym_url(gym))
       end
     end
 
     context "with invalid parameters" do
       it "renders a response with 422 status (i.e. to display the 'edit' template)" do
-        tenant = Tenant.create! valid_attributes
-        patch tenant_url(tenant), params: { tenant: invalid_attributes }
+        gym = Gym.create! valid_attributes
+        patch gym_url(gym), params: { gym: invalid_attributes }
         expect(response).to have_http_status(:unprocessable_content)
       end
     end
   end
 
   describe "DELETE /destroy" do
-    it "destroys the requested tenant" do
-      tenant = Tenant.create! valid_attributes
+    it "destroys the requested gym" do
+      gym = Gym.create! valid_attributes
       expect {
-        delete tenant_url(tenant)
-      }.to change(Tenant, :count).by(-1)
+        delete gym_url(gym)
+      }.to change(Gym, :count).by(-1)
     end
 
-    it "redirects to the tenants list" do
-      tenant = Tenant.create! valid_attributes
-      delete tenant_url(tenant)
-      expect(response).to redirect_to(tenants_url)
+    it "redirects to the gyms list" do
+      gym = Gym.create! valid_attributes
+      delete gym_url(gym)
+      expect(response).to redirect_to(gyms_url)
     end
   end
 end

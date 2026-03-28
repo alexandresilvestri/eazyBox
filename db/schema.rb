@@ -20,16 +20,4 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_28_192205) do
     t.string "name"
     t.datetime "updated_at", null: false
   end
-
-  create_table "tenants", force: :cascade do |t|
-    t.string "address"
-    t.string "cnpj"
-    t.string "corporate_name"
-    t.datetime "created_at", null: false
-    t.string "name", null: false
-    t.string "representative_cpf"
-    t.string "representative_name"
-    t.integer "stripe_customer_id"
-    t.datetime "updated_at", null: false
-  end
 end

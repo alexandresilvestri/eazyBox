@@ -1,9 +1,0 @@
-#!/bin/bash -e
-
-# Install or update gems
-bundle check || bundle install
-
-# Prepare database
-./bin/rails db:prepare
-
-exec "${@}"

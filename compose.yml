@@ -18,7 +18,7 @@ services:
       RUBY_DEBUG_PORT: "12345"
       RUBY_DEBUG_HOST: "0.0.0.0"
     tty: true
-    command: ["bin/dev"]
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -b 0.0.0.0"
     volumes:
       - .:/rails
       - bundle_cache:/usr/local/bundle

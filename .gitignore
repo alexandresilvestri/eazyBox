@@ -1,6 +1,6 @@
 /.bundle
 /vendor/bundle/
-
+/config/master.key
 /log/*
 /tmp/*
 tmp/*
@@ -33,4 +33,8 @@ tmp/*
 /spec/views
 /specifications
 rerun.txt
+
+
+# Ignore key files for decrypting credentials and more.
+/config/*.key
 

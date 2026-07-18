@@ -1,0 +1,20 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/alexandresilvestri/eazyBox#readme",
+  "bugs": {
+    "url": "https://github.com/alexandresilvestri/eazyBox/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexandresilvestri/eazyBox.git"
+  },
+  "license": "ISC",
+  "author": "Alexandre Silvestri",
+  "type": "module",
+  "main": "app.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

@@ -1,1 +1,43 @@
-.
+services:
+
+  postgres:
+    image: postgres:18
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5444:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    ports: 
+       - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+       - redis_data:/data
+
+  app:
+    image: oven/bun:1
+    working_dir: /app
+    command: bun run dev
+    volumes:
+      - ./app:/app
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: postgres
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    tty: true
+    stdin_open: true
+    
+volumes:
+  postgres-data:
+  redis_data:

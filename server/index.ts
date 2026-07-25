@@ -5,7 +5,7 @@ import { redis } from "./redis";
 
 const server = serve({
   port: Number(process.env.PORT ?? 3000),
-  development: process.env.NODE_ENV !== "production" && {
+  development: process.env.NODE_ENV === "development" && {
     hmr: true,
     console: true,
   },

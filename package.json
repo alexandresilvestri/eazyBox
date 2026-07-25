@@ -1,11 +1,11 @@
 {
-  "name": "projeto-fullstack",
+  "name": "eazybox",
   "private": true,
   "type": "module",
   "version": "1.0.0",
   "scripts": {
     "dev": "bun --hot server/index.ts",
-    "start": "NODE_ENV=production bun server/index.ts",
+    "start": "NODE_ENV=development bun server/index.ts",
     "build": "bun build ./src/index.html --outdir ./dist --minify",
     "migrate": "bunx knex migrate:latest --knexfile knexfile.ts",
     "migrate:rollback": "bunx knex migrate:rollback --knexfile knexfile.ts",

@@ -6,6 +6,6 @@ RUN bun install
 
 COPY . .
 
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 EXPOSE 3000
 CMD ["bun", "server/index.ts"]

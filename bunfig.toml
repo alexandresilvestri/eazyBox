@@ -1,0 +1,6 @@
+[install]
+# Usa o registry padrão do npm para resolver pacotes
+registry = "https://registry.npmjs.org"
+
+[install.cache]
+disable = false

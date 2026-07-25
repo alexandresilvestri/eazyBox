@@ -11,13 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Trash2 } from "lucide-react";
-
-type User = {
-  id: number;
-  name: string;
-  email: string;
-  created_at: string;
-};
+import type { User } from "@eazybox/shared";
 
 export default function App() {
   const [users, setUsers] = useState<User[]>([]);

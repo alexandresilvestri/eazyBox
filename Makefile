@@ -13,19 +13,19 @@ logs:
 	docker compose logs -f
 
 migrate:
-	npm run migrate
+	bun run --filter @eazybox/web migrate
 
 migrate-create:
-	npm run migrate:make
+	bun run --filter @eazybox/web migrate:make
 
 migrate-rollback:
-	npm run migrate:rollback
+	bun run --filter @eazybox/web migrate:rollback
 
 seed:
-	npm run seed
+	bun run --filter @eazybox/web seed
 
 seed-create:
-	npm run seed:make
+	bun run --filter @eazybox/web seed:make
 
 pgcli:
 	pgcli postgres://postgres@localhost:5432/eazybox

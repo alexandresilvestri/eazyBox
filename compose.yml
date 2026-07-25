@@ -11,10 +11,10 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d app_db"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d eazybox"]
       interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -28,7 +28,7 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 5
 
   app:
     build: .

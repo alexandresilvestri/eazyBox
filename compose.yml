@@ -32,7 +32,6 @@ services:
 
   app:
     build: .
-    profiles: [full]
     restart: unless-stopped
     environment:
       DATABASE_URL: postgres://postgres@postgres:5432/eazybox

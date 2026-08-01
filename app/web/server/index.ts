@@ -1,5 +1,5 @@
 import { serve } from "bun";
-import index from "../src/index.html";
+import index from "../client/index.html";
 import { usersRoutes } from "./routes/users";
 import { redis } from "./redis";
 
@@ -11,10 +11,8 @@ const server = serve({
   },
 
   routes: {
-    // Frontend: Bun cuida do bundling do HTML/TSX/CSS automaticamente
     "/": index,
 
-    // API REST de usuários
     "/api/users": {
       GET: usersRoutes.list,
       POST: usersRoutes.create,

@@ -4,10 +4,10 @@
     "types": ["bun-types"],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
+      "@/*": ["client/*"],
       "react": ["./node_modules/@types/react"],
       "react-dom": ["./node_modules/@types/react-dom"]
     }
   },
-  "include": ["src", "server", "knexfile.ts"]
+  "include": ["client", "server", "knexfile.ts"]
 }

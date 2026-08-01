@@ -3,12 +3,14 @@ WORKDIR /app
 
 COPY package.json bun.lock* ./
 COPY app/web/package.json ./app/web/
-COPY packages/shared/package.json ./packages/shared/
-RUN bun install
+COPY app/mobile/package.json ./app/mobile/
+COPY shared/package.json ./shared/
+RUN bun install --frozen-lockfile
 
 COPY app/web ./app/web
-COPY packages/shared ./packages/shared
+COPY shared ./shared
 
 ENV NODE_ENV=development
 EXPOSE 3000
+USER bun
 CMD ["bun", "app/web/server/index.ts"]

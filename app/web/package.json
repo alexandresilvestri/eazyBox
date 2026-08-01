@@ -4,8 +4,8 @@
   "type": "module",
   "version": "1.0.0",
   "scripts": {
-    "dev": "bun --hot server/index.ts",
-    "start": "NODE_ENV=development bun server/index.ts",
+    "dev": "bun --hot server/server.ts",
+    "start": "NODE_ENV=development bun server/server.ts",
     "build": "bun build ./client/index.html --outdir ./dist --minify",
     "migrate": "bunx knex migrate:latest --knexfile knexfile.ts",
     "migrate:rollback": "bunx knex migrate:rollback --knexfile knexfile.ts",

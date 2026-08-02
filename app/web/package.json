@@ -7,11 +7,11 @@
     "dev": "bun --hot server/server.ts",
     "start": "NODE_ENV=development bun server/server.ts",
     "build": "bun build ./client/index.html --outdir ./dist --minify",
-    "migrate": "bunx knex migrate:latest --knexfile knexfile.ts",
-    "migrate:rollback": "bunx knex migrate:rollback --knexfile knexfile.ts",
-    "migrate:make": "bunx knex migrate:make --knexfile knexfile.ts -x ts",
-    "seed": "bunx knex seed:run --knexfile knexfile.ts",
-    "seed:make": "bunx knex seed:make --knexfile knexfile.ts -x ts",
+    "migrate": "bunx knex migrate:latest --knexfile server/db/knexfile.ts",
+    "migrate:rollback": "bunx knex migrate:rollback --knexfile server/db/knexfile.ts",
+    "migrate:make": "bunx knex migrate:make --knexfile server/db/knexfile.ts -x ts",
+    "seed": "bunx knex seed:run --knexfile server/db/knexfile.ts",
+    "seed:make": "bunx knex seed:make --knexfile server/db/knexfile.ts -x ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -3,11 +3,11 @@ import type { Knex } from "knex";
 const baseConfig: Knex.Config = {
   client: "pg",
   migrations: {
-    directory: "./server/migrations",
+    directory: "./migrations",
     extension: "ts",
   },
   seeds: {
-    directory: "./server/seeds",
+    directory: "./seeds",
     extension: "ts",
   },
 };

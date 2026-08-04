@@ -1,6 +1,5 @@
 import { serve } from "bun";
 import index from "../client/index.html";
-import { usersRoutes } from "./routes/users";
 import { redis } from "./redis";
 
 const server = serve({
@@ -12,17 +11,6 @@ const server = serve({
 
   routes: {
     "/": index,
-
-    "/api/users": {
-      GET: usersRoutes.list,
-      POST: usersRoutes.create,
-    },
-    "/api/users/:id": {
-      GET: usersRoutes.getById,
-      PUT: usersRoutes.update,
-      DELETE: usersRoutes.remove,
-    },
-
     "/api/health": async () => {
       try {
         await redis.set("health:check", "1");
@@ -38,4 +26,3 @@ const server = serve({
   },
 });
 
-console.log(`Servidor rodando em ${server.url}`);

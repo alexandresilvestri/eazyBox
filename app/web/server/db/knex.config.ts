@@ -1,14 +1,16 @@
 import type { Knex } from 'knex'
-import _ from 'lodash'
-import camelcaseKeys from 'camelcase-keys'
-
-const followedByNumRegEx = /_(\d)/g
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
 	typeof value === 'object' && value !== null && !Array.isArray(value)
 
 export const snakeCaseIgnoringNumbers = (value: string): string =>
-	_.snakeCase(value).replace(followedByNumRegEx, '$1')
+	value.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
+
+const camelCase = (value: string): string =>
+	value.replace(/_([a-zA-Z0-9])/g, (_match, char) => char.toUpperCase())
+
+const camelCaseKeys = (row: Record<string, unknown>): Record<string, unknown> =>
+	Object.fromEntries(Object.entries(row).map(([key, value]) => [camelCase(key), value]))
 
 const postProcessResponse: Knex.Config['postProcessResponse'] = (result) => {
 	if (result == null) {
@@ -18,7 +20,7 @@ const postProcessResponse: Knex.Config['postProcessResponse'] = (result) => {
 	if (Array.isArray(result)) {
 		return result.map((row) => {
 			if (isObject(row)) {
-				const converted = camelcaseKeys(row)
+				const converted = camelCaseKeys(row)
 				return converted
 			}
 			return row
@@ -26,7 +28,7 @@ const postProcessResponse: Knex.Config['postProcessResponse'] = (result) => {
 	}
 
 	if (isObject(result)) {
-		const converted = camelcaseKeys(result)
+		const converted = camelCaseKeys(result)
 		return converted
 	}
 

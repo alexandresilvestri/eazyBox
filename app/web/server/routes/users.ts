@@ -1,5 +1,5 @@
 import type { BunRequest } from "bun";
-import { db } from "../db";
+import { db } from "../db/db";
 import { cached, invalidate } from "../redis";
 
 const CACHE_PREFIX = "users:";

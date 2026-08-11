@@ -1,13 +1,18 @@
-import { RedisClient } from "bun";
+import { RedisClient } from 'bun'
 
-export const redis = new RedisClient(process.env.REDIS_URL ?? "redis://localhost:6379");
+export const redis = new RedisClient(
+  process.env.REDIS_URL ?? 'redis://localhost:6379'
+)
 
-const DEFAULT_TTL_SECONDS = 60;
+const DEFAULT_TTL_SECONDS = 60
 
-async function safeRedis<T>(operation: () => Promise<T>, fallbackValue: T): Promise<T> {
+async function safeRedis<T>(
+  operation: () => Promise<T>,
+  fallbackValue: T
+): Promise<T> {
   try {
     return await operation()
-  } catch(err) {
+  } catch (err) {
     console.error('Redis operation failed. Check the logs.', err)
     return fallbackValue
   }
@@ -18,21 +23,24 @@ export async function cached<T>(
   fallback: () => Promise<T>,
   ttlSeconds: number = DEFAULT_TTL_SECONDS
 ): Promise<T> {
-  const hit = await safeRedis(() => redis.get(key), null);
+  const hit = await safeRedis(() => redis.get(key), null)
   if (hit !== null) {
-    return JSON.parse(hit) as T;
+    return JSON.parse(hit) as T
   }
 
-  const value = await fallback();
+  const value = await fallback()
   if (value !== undefined) {
-    await safeRedis(() => redis.set(key, JSON.stringify(value), "EX", ttlSeconds), null);
+    await safeRedis(
+      () => redis.set(key, JSON.stringify(value), 'EX', ttlSeconds),
+      null
+    )
   }
-  return value;
+  return value
 }
 
 export async function invalidate(prefix: string): Promise<void> {
-  const keys = await safeRedis(() => redis.keys(`${prefix}*`), []);
+  const keys = await safeRedis(() => redis.keys(`${prefix}*`), [])
   if (keys.length > 0) {
-    await safeRedis(() => Promise.all(keys.map((key) => redis.del(key))), []);
+    await safeRedis(() => Promise.all(keys.map((key) => redis.del(key))), [])
   }
 }

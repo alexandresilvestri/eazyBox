@@ -1,7 +1,7 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useEffect, useState, type FormEvent } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Card,
   CardContent,
@@ -9,63 +9,64 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Trash2 } from "lucide-react";
-import type { User } from "@eazybox/shared";
+} from '@/components/ui/card'
+import { Trash2 } from 'lucide-react'
+import type { User } from '@eazybox/shared'
 
 export default function App() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [users, setUsers] = useState<User[]>([])
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   async function loadUsers() {
-    setLoading(true);
+    setLoading(true)
     try {
-      const res = await fetch("/api/users");
-      if (!res.ok) throw new Error("Falha ao carregar usuários");
-      setUsers(await res.json());
+      const res = await fetch('/api/users')
+      if (!res.ok) throw new Error('Falha ao carregar usuários')
+      setUsers(await res.json())
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro desconhecido");
+      setError(err instanceof Error ? err.message : 'Erro desconhecido')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   }
 
   useEffect(() => {
-    loadUsers();
-  }, []);
+    loadUsers()
+  }, [])
 
   async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
+    e.preventDefault()
+    setError(null)
     try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email }),
-      });
+      })
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Falha ao criar usuário");
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error ?? 'Falha ao criar usuário')
       }
-      setName("");
-      setEmail("");
-      await loadUsers();
+      setName('')
+      setEmail('')
+      await loadUsers()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro desconhecido");
+      setError(err instanceof Error ? err.message : 'Erro desconhecido')
     }
   }
 
   async function handleDelete(id: number) {
-    setError(null);
+    setError(null)
     try {
-      const res = await fetch(`/api/users/${id}`, { method: "DELETE" });
-      if (!res.ok && res.status !== 204) throw new Error("Falha ao remover usuário");
-      setUsers((prev) => prev.filter((u) => u.id !== id));
+      const res = await fetch(`/api/users/${id}`, { method: 'DELETE' })
+      if (!res.ok && res.status !== 204)
+        throw new Error('Falha ao remover usuário')
+      setUsers((prev) => prev.filter((u) => u.id !== id))
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro desconhecido");
+      setError(err instanceof Error ? err.message : 'Erro desconhecido')
     }
   }
 
@@ -81,7 +82,9 @@ export default function App() {
       <Card>
         <CardHeader>
           <CardTitle>Novo usuário</CardTitle>
-          <CardDescription>Cadastre um novo usuário no banco de dados</CardDescription>
+          <CardDescription>
+            Cadastre um novo usuário no banco de dados
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="flex flex-col gap-4">
@@ -117,12 +120,18 @@ export default function App() {
       <Card>
         <CardHeader>
           <CardTitle>Lista de usuários</CardTitle>
-          <CardDescription>{users.length} usuário(s) cadastrado(s)</CardDescription>
+          <CardDescription>
+            {users.length} usuário(s) cadastrado(s)
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-          {loading && <p className="text-sm text-muted-foreground">Carregando...</p>}
+          {loading && (
+            <p className="text-sm text-muted-foreground">Carregando...</p>
+          )}
           {!loading && users.length === 0 && (
-            <p className="text-sm text-muted-foreground">Nenhum usuário cadastrado ainda.</p>
+            <p className="text-sm text-muted-foreground">
+              Nenhum usuário cadastrado ainda.
+            </p>
           )}
           {users.map((user) => (
             <div
@@ -146,5 +155,5 @@ export default function App() {
         </CardContent>
       </Card>
     </main>
-  );
+  )
 }

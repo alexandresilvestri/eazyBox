@@ -3,7 +3,10 @@
   "private": true,
   "type": "module",
   "version": "1.0.0",
-  "workspaces": ["app/*", "shared"],
+  "workspaces": [
+    "app/*",
+    "shared"
+  ],
   "scripts": {
     "dev": "bun run --filter @eazybox/web dev",
     "mobile": "bun run --filter @eazybox/mobile start",

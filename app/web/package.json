@@ -13,7 +13,9 @@
     "seed": "bunx knex seed:run --knexfile server/db/knexfile.ts",
     "seed:make": "bunx knex seed:make --knexfile server/db/knexfile.ts -x ts",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "format": "bunx prettier --write .",
+    "format:check": "bunx prettier --check ."
   },
   "dependencies": {
     "@eazybox/shared": "workspace:*",

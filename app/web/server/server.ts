@@ -1,3 +1,4 @@
+import { Sentry } from "./sentry";
 import { serve } from "bun";
 import index from "../client/index.html";
 import { redis } from "./redis";
@@ -19,6 +20,11 @@ const server = serve({
         return Response.json({ status: "ok", redis: "unavailable" }, { status: 200 });
       }
     },
+  },
+
+  error(error) {
+    Sentry.captureException(error);
+    return new Response("Internal Server Error", { status: 500 });
   },
 
   fetch() {

@@ -12,7 +12,8 @@
     "migrate:make": "bunx knex migrate:make --knexfile server/db/knexfile.ts -x ts",
     "seed": "bunx knex seed:run --knexfile server/db/knexfile.ts",
     "seed:make": "bunx knex seed:make --knexfile server/db/knexfile.ts -x ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@eazybox/shared": "workspace:*",
@@ -30,14 +31,22 @@
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/bun": "latest",
+    "@types/pg": "^8.21.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
-    "@types/pg": "^8.21.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^10.8.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.9.0",
+    "jiti": "^2.7.0",
+    "postcss": "^8.5.26",
+    "prettier": "3.9.6",
     "tailwindcss": "^4.3.3",
     "tailwindcss-animate": "^1.0.7",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.5.26",
     "typescript": "^7.0.2",
-    "@types/bun": "latest"
+    "typescript-eslint": "^8.67.0"
   }
 }

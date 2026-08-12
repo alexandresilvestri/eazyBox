@@ -5,6 +5,7 @@ export const redis = new RedisClient(
 )
 
 const DEFAULT_TTL_SECONDS = 60
+const HEALTH_PROBE_TIMEOUT_MS = 500
 
 async function safeRedis<T>(
   operation: () => Promise<T>,
@@ -16,6 +17,17 @@ async function safeRedis<T>(
     console.error('Redis operation failed. Check the logs.', err)
     return fallbackValue
   }
+}
+
+export function redisReachable(): Promise<boolean> {
+  return safeRedis(
+    () =>
+      Promise.race([
+        redis.ping().then(() => true),
+        Bun.sleep(HEALTH_PROBE_TIMEOUT_MS).then(() => false),
+      ]),
+    false
+  )
 }
 
 export async function cached<T>(

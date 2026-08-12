@@ -1,84 +1,100 @@
-import type { BunRequest } from 'bun'
+import { Hono } from 'hono'
+import { createUserSchema, updateUserSchema, type User } from '@eazybox/shared'
 import { db } from '../db/db'
 import { cached, invalidate } from '../redis'
 
 const CACHE_PREFIX = 'users:'
 const LIST_CACHE_KEY = `${CACHE_PREFIX}list`
 const LIST_TTL_SECONDS = 30
+const UNIQUE_VIOLATION = '23505'
 
-function json(data: unknown, init: ResponseInit = {}): Response {
-  return Response.json(data, init)
+const PUBLIC_COLUMNS: (keyof User)[] = [
+  'id',
+  'email',
+  'firstName',
+  'lastName',
+  'createdAt',
+  'updatedAt',
+]
+
+function isUniqueViolation(err: unknown): boolean {
+  return (err as { code?: string } | null)?.code === UNIQUE_VIOLATION
 }
 
-export const usersRoutes = {
-  async list() {
-    const users = await cached(
-      LIST_CACHE_KEY,
-      () => db('users').select('*').orderBy('id', 'asc'),
-      LIST_TTL_SECONDS
+export const usersRoutes = new Hono()
+
+usersRoutes.get('/', async (c) => {
+  const users = await cached(
+    LIST_CACHE_KEY,
+    () => db<User>('users').select(PUBLIC_COLUMNS).orderBy('createdAt', 'asc'),
+    LIST_TTL_SECONDS
+  )
+  return c.json(users)
+})
+
+usersRoutes.get('/:id', async (c) => {
+  const id = c.req.param('id')
+  const user = await cached(
+    `${CACHE_PREFIX}${id}`,
+    () => db<User>('users').select(PUBLIC_COLUMNS).where({ id }).first(),
+    LIST_TTL_SECONDS
+  )
+  if (!user) return c.json({ error: 'Usuário não encontrado' }, 404)
+  return c.json(user)
+})
+
+usersRoutes.post('/', async (c) => {
+  const parsed = createUserSchema.safeParse(
+    await c.req.json().catch(() => null)
+  )
+  if (!parsed.success) {
+    return c.json(
+      { error: 'Dados inválidos', issues: parsed.error.issues },
+      400
     )
-    return json(users)
-  },
+  }
 
-  async getById(req: BunRequest<'/api/users/:id'>) {
-    const { id } = req.params
-    const user = await cached(
-      `${CACHE_PREFIX}${id}`,
-      () => db('users').where({ id }).first(),
-      LIST_TTL_SECONDS
-    )
-    if (!user) return json({ error: 'Usuário não encontrado' }, { status: 404 })
-    return json(user)
-  },
-
-  async create(req: BunRequest) {
-    const body = await req.json().catch(() => null)
-    if (!body?.name || !body?.email) {
-      return json(
-        { error: "Campos 'name' e 'email' são obrigatórios" },
-        { status: 400 }
-      )
-    }
-
-    try {
-      const [user] = await db('users')
-        .insert({ name: body.name, email: body.email })
-        .returning('*')
-      await invalidate(CACHE_PREFIX)
-      return json(user, { status: 201 })
-    } catch (err: any) {
-      if (err?.code === '23505') {
-        return json(
-          { error: 'Já existe um usuário com esse e-mail' },
-          { status: 409 }
-        )
-      }
-      return json({ error: 'Erro ao criar usuário' }, { status: 500 })
-    }
-  },
-
-  async update(req: BunRequest<'/api/users/:id'>) {
-    const { id } = req.params
-    const body = await req.json().catch(() => null)
-    if (!body)
-      return json({ error: 'Corpo da requisição inválido' }, { status: 400 })
-
+  const { password, ...profile } = parsed.data
+  try {
     const [user] = await db('users')
-      .where({ id })
-      .update({ ...body, updated_at: db.fn.now() })
-      .returning('*')
-
-    if (!user) return json({ error: 'Usuário não encontrado' }, { status: 404 })
+      .insert({ ...profile, password: await Bun.password.hash(password) })
+      .returning(PUBLIC_COLUMNS)
     await invalidate(CACHE_PREFIX)
-    return json(user)
-  },
+    return c.json(user, 201)
+  } catch (err) {
+    if (isUniqueViolation(err)) {
+      return c.json({ error: 'Já existe um usuário com esse e-mail' }, 409)
+    }
+    throw err
+  }
+})
 
-  async remove(req: BunRequest<'/api/users/:id'>) {
-    const { id } = req.params
-    const deleted = await db('users').where({ id }).del()
-    if (!deleted)
-      return json({ error: 'Usuário não encontrado' }, { status: 404 })
-    await invalidate(CACHE_PREFIX)
-    return new Response(null, { status: 204 })
-  },
-}
+usersRoutes.patch('/:id', async (c) => {
+  const id = c.req.param('id')
+  const parsed = updateUserSchema.safeParse(
+    await c.req.json().catch(() => null)
+  )
+  if (!parsed.success) {
+    return c.json(
+      { error: 'Dados inválidos', issues: parsed.error.issues },
+      400
+    )
+  }
+
+  const [user] = await db('users')
+    .where({ id })
+    .update({ ...parsed.data, updatedAt: db.fn.now() })
+    .returning(PUBLIC_COLUMNS)
+
+  if (!user) return c.json({ error: 'Usuário não encontrado' }, 404)
+  await invalidate(CACHE_PREFIX)
+  return c.json(user)
+})
+
+usersRoutes.delete('/:id', async (c) => {
+  const id = c.req.param('id')
+  const deleted = await db('users').where({ id }).del()
+  if (!deleted) return c.json({ error: 'Usuário não encontrado' }, 404)
+  await invalidate(CACHE_PREFIX)
+  return c.body(null, 204)
+})

@@ -2,12 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "types": ["bun-types"],
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["client/*"],
+      "@/*": ["./client/*"],
       "react": ["./node_modules/@types/react"],
       "react-dom": ["./node_modules/@types/react-dom"]
     }
   },
-  "include": ["client", "server", "knexfile.ts"]
+  "include": ["client", "server"]
 }

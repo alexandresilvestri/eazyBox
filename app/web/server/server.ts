@@ -1,9 +1,22 @@
 import { Sentry } from './sentry'
 import { serve } from 'bun'
 import index from '../client/index.html'
-import { redis } from './redis'
+import { Hono } from 'hono'
+import { secureHeaders } from 'hono/secure-headers'
+import routes from './routes/index'
 
-const server = serve({
+const app = new Hono()
+app.use('*', secureHeaders())
+app.route('/api', routes)
+
+app.notFound((c) => c.json({ error: 'Não encontrado' }, 404))
+
+app.onError((err, c) => {
+  Sentry.captureException(err)
+  return c.json({ error: 'Erro interno do servidor' }, 500)
+})
+
+serve({
   port: Number(process.env.PORT ?? 3000),
   development: process.env.NODE_ENV === 'development' && {
     hmr: true,
@@ -11,26 +24,12 @@ const server = serve({
   },
 
   routes: {
-    '/': index,
-    '/api/health': async () => {
-      try {
-        await redis.set('health:check', '1')
-        return Response.json({ status: 'ok', redis: 'ok' })
-      } catch {
-        return Response.json(
-          { status: 'ok', redis: 'unavailable' },
-          { status: 200 }
-        )
-      }
-    },
+    '/api/*': app.fetch,
+    '/*': index,
   },
 
   error(error) {
     Sentry.captureException(error)
     return new Response('Internal Server Error', { status: 500 })
-  },
-
-  fetch() {
-    return new Response('Não encontrado', { status: 404 })
   },
 })

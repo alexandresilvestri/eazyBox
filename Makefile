@@ -12,6 +12,12 @@ rebuild:
 logs:
 	docker compose logs -f
 
+lint:
+	bun run lint
+
+format:
+	bun run format
+
 migrate:
 	bun run --filter @eazybox/web migrate
 

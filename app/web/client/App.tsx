@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,8 +20,7 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  async function loadUsers() {
-    setLoading(true)
+  const loadUsers = useCallback(async () => {
     try {
       const res = await fetch('/api/users')
       if (!res.ok) throw new Error('Falha ao carregar usuários')
@@ -31,11 +30,13 @@ export default function App() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
-    loadUsers()
-  }, [])
+    void (async () => {
+      await loadUsers()
+    })()
+  }, [loadUsers])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()

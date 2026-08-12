@@ -13,4 +13,4 @@ COPY shared ./shared
 ENV NODE_ENV=development
 EXPOSE 3000
 USER bun
-CMD ["bun", "app/web/server/index.ts"]
+CMD ["bun", "--hot", "app/web/server/server.ts"]

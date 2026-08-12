@@ -39,6 +39,12 @@ services:
       PORT: 3000
     ports:
       - "3000:3000"
+    volumes:
+      - ./app/web:/app/app/web
+      - ./shared:/app/shared
+      - /app/node_modules
+      - /app/app/web/node_modules
+      - /app/shared/node_modules
     depends_on:
       postgres:
         condition: service_healthy

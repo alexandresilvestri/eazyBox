@@ -15,5 +15,8 @@
   "devDependencies": {
     "typescript": "^6.0.3",
     "@types/bun": "latest"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.9.0"
   }
 }

@@ -2,14 +2,15 @@ import { Sentry } from './sentry'
 import { serve } from 'bun'
 import index from '../client/index.html'
 import { Hono } from 'hono'
+import { logger } from 'hono/logger'
+import { cors } from 'hono/cors'
+import { csrf } from 'hono/csrf'
 import { secureHeaders } from 'hono/secure-headers'
 import routes from './routes/index'
 
 const app = new Hono()
 app.use('*', secureHeaders())
 app.route('/api', routes)
-
-app.notFound((c) => c.json({ error: 'Não encontrado' }, 404))
 
 app.onError((err, c) => {
   Sentry.captureException(err)

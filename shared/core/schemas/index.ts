@@ -1,2 +1,6 @@
 export * from './users.ts'
 export * from './auth.ts'
+export * from './workouts.ts'
+export * from './workout-schedule.ts'
+export * from './workout-sessions.ts'
+export * from './checkins.ts'

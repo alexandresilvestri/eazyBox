@@ -16,13 +16,16 @@ From the repo root:
 | `make migrate` | Apply Knex migrations |
 | `make migrate-create <name>` | Scaffold a migration |
 | `make seed` | Run seeds |
+| `make test` | Run the Bun test suite |
 | `make pgcli` | Open a psql session |
 
 From `app/web`: `bun run lint`, `bun run lint:fix`, `bun run format`, `bun run typecheck`.
 
-No test runner is configured — `app/web/server/tests/` is empty. Do not add tests or run test commands unless asked.
+Tests are `bun test` (no other runner). `app/web/bunfig.toml` preloads `server/tests/setup.ts`, which creates `eazybox_test`, migrates it, and truncates between tests. The suite shares one database, so it **must** run serially — `bun run test` passes `--parallel=1`. Bare `bun test` runs files in parallel workers and they will wipe each other's fixtures.
 
-**Finish every server change with `bun run typecheck && bun run lint` from `app/web`.**
+`bun run --filter @eazybox/web admin:create` bootstraps the first admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+
+**Finish every server change with `bun run typecheck && bun run lint && bun run test` from `app/web`.**
 
 ---
 
@@ -33,15 +36,18 @@ Applies to `app/web/server/**` only. Not `app/mobile` (see `app/mobile/CLAUDE.md
 Each layer imports only the layer directly below it, through that layer's `index.ts`.
 
 ```
-server.ts
-  └─> routes/         Hono wiring, export default
-       └─> controllers/    functions, HTTP boundary
-            └─> services/       classes, business rules
-                 └─> models/         classes, data access
-                      └─> db/db.ts        Knex singleton
+server.ts             serve() only, no side-effect-free imports
+  └─> app.ts          the Hono instance (importable by tests)
+       └─> routes/         Hono wiring, export default
+            └─> controllers/    functions, HTTP boundary
+                 └─> services/       classes, business rules
+                      └─> models/         classes, data access
+                           └─> db/db.ts        Knex pool as app_user
 
-cross-cutting: middlewares/, errors/, @eazybox/shared, redis.ts
+cross-cutting: middlewares/, errors/, context.ts, @eazybox/shared, redis.ts
 ```
+
+`server.ts` must stay import-safe to split from `app.ts`: importing `app.ts` never opens a socket, which is what lets tests call `app.request('/api/...')` with no port.
 
 ## Forbidden imports
 
@@ -170,23 +176,28 @@ usersRoutes.post('/', usersController.create)
 
 One `index.ts` per folder under `server/` — the folder's only public surface. Barrels contain re-exports and the singleton construction below. No logic, no conditionals.
 
-`models/index.ts` and `services/index.ts` are the entire DI wiring:
+`models/index.ts` and `services/index.ts` are the entire DI wiring. They export **factories, not singletons**, because RLS identity is transaction-scoped and a process-wide pool cannot carry it:
 
 ```ts
 // server/models/index.ts
-import { db } from '../db/db'
-import { UserModel } from './user'
+export const transaction = <T>(work: (trx: Knex.Transaction) => Promise<T>) =>
+  db.transaction(work)
 
-export const userModel = new UserModel(db)
+export const buildModels = (trx: Knex.Transaction) => ({
+  users: new UserModel(trx),
+})
+export type Models = ReturnType<typeof buildModels>
 ```
 
 ```ts
 // server/services/index.ts
-import { userModel } from '../models'
-import { UsersService } from './users'
-
-export const usersService = new UsersService(userModel)
+export const buildServices = (models: Models) => ({
+  users: new UsersService(models.users),
+})
+export type Services = ReturnType<typeof buildServices>
 ```
+
+`withRlsContext()` builds one container per request and puts it on the context, so controllers read `c.get('services').users` instead of importing a singleton. `authService` is the one exception — it runs on the base pool because login precedes identity.
 
 `controllers/index.ts` namespace-exports (`export * as usersController from './users'`) so routes read as `usersController.list`.
 
@@ -195,6 +206,21 @@ export const usersService = new UsersService(userModel)
 `errors/index.ts` and `middlewares/index.ts` are plain `export * from './x'`.
 
 ---
+
+# Auth and RLS
+
+Authorization is enforced twice: `requireAdmin()` / `requireStaff()` in `routes/` as the readable first line, and Postgres RLS as the backstop for any route someone forgets to guard.
+
+- The runtime connects as **`app_user`** (`DATABASE_URL`), a non-superuser that RLS applies to. Migrations, seeds and scripts connect as the owner (`DATABASE_OWNER_URL`) and bypass policies — that is deliberate and is why `make migrate` works.
+- `authenticate()` verifies the JWT (cookie for web, `Authorization: Bearer` for mobile), then `withRlsContext()` opens a transaction and sets `app.user_id` / `app.is_admin` / `app.is_coach` via `set_config(..., true)`.
+- A member reading someone else's row gets **404, not 403** — RLS makes the row invisible before authorization can speak. Do not "fix" this to 403; it would leak existence.
+- **Never put `deleted_at is null` in a SELECT policy.** Postgres applies SELECT policies to the *new* row of an UPDATE, so a soft delete would make the row invisible to the statement writing it and fail. Soft-delete filtering lives in `models/`.
+- Pre-identity reads go through `SECURITY DEFINER` functions (`app.find_login`, `app.find_identity`). These are the only paths that bypass policies; do not add more without a reason.
+- `cached()` may only wrap identity-invariant reads (`workouts`, `workout_schedule`, `workout_sessions`). Anything RLS filters per user must skip the cache or one member's rows will be served to another.
+
+# Migrations run on Node, not Bun
+
+`bunx knex` shells out to Node, so **`Bun.*` APIs are unavailable inside migrations and seeds**. Anything needing `Bun.password` belongs in `server/scripts/` and runs with `bun`.
 
 # Shared package
 

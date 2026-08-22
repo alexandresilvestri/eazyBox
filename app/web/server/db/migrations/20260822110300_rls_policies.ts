@@ -8,7 +8,7 @@ const GUARDED_TABLES = [
 
 const USER_POLICIES = [
   `create policy users_select on users for select
-     using (deleted_at is null and (id = app.current_user_id() or app.is_staff()))`,
+     using (id = app.current_user_id() or app.is_staff())`,
   `create policy users_insert on users for insert
      with check (app.is_admin())`,
   `create policy users_update_self on users for update
@@ -36,7 +36,7 @@ export async function up(knex: Knex): Promise<void> {
     await knex.raw(`alter table ${table} enable row level security`)
     await knex.raw(`
       create policy ${table}_select on ${table} for select
-        using (deleted_at is null and app.is_authenticated())
+        using (app.is_authenticated())
     `)
     await knex.raw(`
       create policy ${table}_write on ${table} for all

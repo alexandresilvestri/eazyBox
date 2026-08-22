@@ -1,8 +1,10 @@
 import { Hono } from 'hono'
 import { usersRoutes } from './users'
+import { authenticate, withRlsContext } from '../middlewares'
 import { redisReachable } from '../redis'
+import type { AppEnv } from '../context'
 
-const routes = new Hono()
+const routes = new Hono<AppEnv>()
 
 routes.get('/health', async (c) =>
   c.json({
@@ -11,6 +13,8 @@ routes.get('/health', async (c) =>
   })
 )
 
+routes.use('/users/*', authenticate(), withRlsContext())
+routes.use('/users', authenticate(), withRlsContext())
 routes.route('/users', usersRoutes)
 
 export default routes

@@ -11,6 +11,8 @@
     "migrate:make": "bunx knex migrate:make --knexfile server/db/knexfile.ts -x ts",
     "seed": "bunx knex seed:run --knexfile server/db/knexfile.ts",
     "seed:make": "bunx knex seed:make --knexfile server/db/knexfile.ts -x ts",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "bunx eslint . --fix",

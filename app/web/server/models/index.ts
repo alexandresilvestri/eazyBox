@@ -1,6 +1,9 @@
 import type { Knex } from 'knex'
 import { db } from '../db/db'
+import { AuthModel } from './auth'
 import { UserModel } from './user'
+
+export const authModel = new AuthModel(db)
 
 export const transaction = <T>(
   work: (trx: Knex.Transaction) => Promise<T>

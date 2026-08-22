@@ -17,3 +17,7 @@ export class InactiveUser extends Error {
 export class AlreadyCheckedIn extends Error {
   override name = 'AlreadyCheckedIn'
 }
+
+export class InvalidRefreshToken extends Error {
+  override name = 'InvalidRefreshToken'
+}

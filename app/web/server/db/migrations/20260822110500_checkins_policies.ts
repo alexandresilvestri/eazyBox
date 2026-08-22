@@ -1,21 +1,21 @@
 import type { Knex } from 'knex'
 
+const OWN_ROW = 'user_id = app.current_user_id()'
+
 export async function up(knex: Knex): Promise<void> {
-  // TODO(human): write the three checkins policies described below.
-  //
-  // await knex.raw(`
-  //   create policy checkins_select on checkins for select
-  //     using (...)
-  // `)
-  // await knex.raw(`
-  //   create policy checkins_insert on checkins for insert
-  //     with check (...)
-  // `)
-  // await knex.raw(`
-  //   create policy checkins_update on checkins for update
-  //     using (...)
-  //     with check (...)
-  // `)
+  await knex.raw(`
+    create policy checkins_select on checkins for select
+      using (${OWN_ROW} or app.is_staff())
+  `)
+  await knex.raw(`
+    create policy checkins_insert on checkins for insert
+      with check (${OWN_ROW})
+  `)
+  await knex.raw(`
+    create policy checkins_update on checkins for update
+      using (${OWN_ROW})
+      with check (${OWN_ROW})
+  `)
 }
 
 export async function down(knex: Knex): Promise<void> {

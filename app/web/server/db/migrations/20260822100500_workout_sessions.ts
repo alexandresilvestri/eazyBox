@@ -15,6 +15,7 @@ export async function up(knex: Knex): Promise<void> {
     t.timestamp('deleted_at', { useTz: true })
     t.unique(['workout_schedule_id', 'session_date'])
     t.index('session_date')
+    t.index('workout_id')
   })
 }
 

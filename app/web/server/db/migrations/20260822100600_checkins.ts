@@ -14,11 +14,11 @@ export async function up(knex: Knex): Promise<void> {
       .defaultTo(knex.fn.now())
     t.index('user_id')
     t.index('workout_session_id')
+    t.unique(['user_id', 'workout_session_id'], {
+      indexName: 'checkins_live_unique',
+      predicate: knex.whereRaw('undone = false'),
+    })
   })
-
-  await knex.raw(
-    'create unique index checkins_live_unique on checkins (user_id, workout_session_id) where undone = false'
-  )
 }
 
 export async function down(knex: Knex): Promise<void> {

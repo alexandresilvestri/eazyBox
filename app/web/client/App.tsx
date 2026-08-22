@@ -24,7 +24,7 @@ export default function App() {
     try {
       const res = await fetch('/api/users')
       if (!res.ok) throw new Error('Falha ao carregar usuários')
-      setUsers(await res.json())
+      setUsers((await res.json()) as User[])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido')
     } finally {
@@ -48,7 +48,7 @@ export default function App() {
         body: JSON.stringify({ name, email }),
       })
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
+        const data = (await res.json().catch(() => ({}))) as { error?: string }
         throw new Error(data.error ?? 'Falha ao criar usuário')
       }
       setName('')
@@ -59,7 +59,7 @@ export default function App() {
     }
   }
 
-  async function handleDelete(id: number) {
+  async function handleDelete(id: string) {
     setError(null)
     try {
       const res = await fetch(`/api/users/${id}`, { method: 'DELETE' })
@@ -140,14 +140,14 @@ export default function App() {
               className="flex items-center justify-between rounded-md border p-3"
             >
               <div>
-                <p className="font-medium">{user.name}</p>
+                <p className="font-medium">{user.firstName} {user.lastName}</p>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => handleDelete(user.id)}
-                aria-label={`Remover ${user.name}`}
+                aria-label={`Remover ${user.firstName}`}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

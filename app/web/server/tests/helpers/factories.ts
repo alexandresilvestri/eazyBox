@@ -40,23 +40,35 @@ export async function createWorkout(wod = 'Fran') {
   return row.id as string
 }
 
+export async function createSlot(weekDay = 'monday', time = '06:00') {
+  const [row] = await owner('workout_schedule')
+    .insert({ week_day: weekDay, time })
+    .returning(['id', 'week_day', 'time'])
+  return { id: row.id as string, weekDay, time }
+}
+
 export async function createSession(sessionDate = '2026-08-24') {
-  const [slot] = await owner('workout_schedule')
-    .insert({ week_day: 'monday', time: '06:00' })
-    .onConflict()
-    .ignore()
-    .returning('id')
-  const scheduleId =
-    slot?.id ?? (await owner('workout_schedule').select('id').first())!.id
+  const existing = await owner('workout_schedule')
+    .select('id', 'week_day', 'time')
+    .first()
+  const slot = existing
+    ? { id: existing.id as string, weekDay: existing.week_day, time: existing.time }
+    : await createSlot()
   const workoutId = await createWorkout()
+
   const [session] = await owner('workout_sessions')
     .insert({
-      workout_schedule_id: scheduleId,
+      workout_schedule_id: slot.id,
       workout_id: workoutId,
-      week_day: 'monday',
-      time: '06:00',
+      week_day: slot.weekDay,
+      time: slot.time,
       session_date: sessionDate,
     })
     .returning('id')
-  return session.id as string
+
+  return {
+    id: session.id as string,
+    workoutScheduleId: slot.id,
+    workoutId,
+  }
 }

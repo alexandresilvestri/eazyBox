@@ -66,7 +66,7 @@ describe('users policies', () => {
 describe('checkins policies', () => {
   test('a member inserts their own check-in', async () => {
     const member = await createUser()
-    const sessionId = await createSession()
+    const { id: sessionId } = await createSession()
     const inserted = await asRole({ userId: member.id }, (trx) =>
       trx('checkins').insert({ user_id: member.id, workout_session_id: sessionId })
     )
@@ -77,7 +77,7 @@ describe('checkins policies', () => {
   test('a member cannot insert under another user id', async () => {
     const member = await createUser()
     const other = await createUser()
-    const sessionId = await createSession()
+    const { id: sessionId } = await createSession()
     await expect(
       asRole({ userId: member.id }, (trx) =>
         trx('checkins').insert({ user_id: other.id, workout_session_id: sessionId })
@@ -87,7 +87,7 @@ describe('checkins policies', () => {
 
   test('a second live check-in is rejected', async () => {
     const member = await createUser()
-    const sessionId = await createSession()
+    const { id: sessionId } = await createSession()
     const row = { user_id: member.id, workout_session_id: sessionId }
     await asRole({ userId: member.id }, (trx) => trx('checkins').insert(row))
     await expect(
@@ -97,7 +97,7 @@ describe('checkins policies', () => {
 
   test('re-checking in after undo is allowed', async () => {
     const member = await createUser()
-    const sessionId = await createSession()
+    const { id: sessionId } = await createSession()
     const row = { user_id: member.id, workout_session_id: sessionId }
     await asRole({ userId: member.id }, (trx) => trx('checkins').insert(row))
     await asRole({ userId: member.id }, (trx) =>
@@ -110,7 +110,7 @@ describe('checkins policies', () => {
   test('a member cannot touch another member check-in', async () => {
     const member = await createUser()
     const other = await createUser()
-    const sessionId = await createSession()
+    const { id: sessionId } = await createSession()
     await owner('checkins').insert({
       user_id: other.id,
       workout_session_id: sessionId,
@@ -126,7 +126,7 @@ describe('checkins policies', () => {
   test('staff see every check-in', async () => {
     const coach = await createUser({ isCoach: true })
     const member = await createUser()
-    const sessionId = await createSession()
+    const { id: sessionId } = await createSession()
     await owner('checkins').insert({
       user_id: member.id,
       workout_session_id: sessionId,

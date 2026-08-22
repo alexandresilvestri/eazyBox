@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { authRoutes } from './auth'
 import { usersRoutes } from './users'
 import { authenticate, withRlsContext } from '../middlewares'
 import { redisReachable } from '../redis'
@@ -12,6 +13,8 @@ routes.get('/health', async (c) =>
     redis: (await redisReachable()) ? 'ok' : 'unavailable',
   })
 )
+
+routes.route('/auth', authRoutes)
 
 routes.use('/users/*', authenticate(), withRlsContext())
 routes.use('/users', authenticate(), withRlsContext())

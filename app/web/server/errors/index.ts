@@ -21,3 +21,27 @@ export class AlreadyCheckedIn extends Error {
 export class InvalidRefreshToken extends Error {
   override name = 'InvalidRefreshToken'
 }
+
+export class WorkoutNotFound extends Error {
+  override name = 'WorkoutNotFound'
+}
+
+export class WorkoutScheduleNotFound extends Error {
+  override name = 'WorkoutScheduleNotFound'
+}
+
+export class WorkoutSessionNotFound extends Error {
+  override name = 'WorkoutSessionNotFound'
+}
+
+export class CheckinNotFound extends Error {
+  override name = 'CheckinNotFound'
+}
+
+export class ScheduleSlotTaken extends Error {
+  override name = 'ScheduleSlotTaken'
+}
+
+export class SessionAlreadyScheduled extends Error {
+  override name = 'SessionAlreadyScheduled'
+}

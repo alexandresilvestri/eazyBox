@@ -7,11 +7,11 @@ export async function up(knex: Knex): Promise<void> {
     t.time('time').notNullable()
     t.timestamps(true, true)
     t.timestamp('deleted_at', { useTz: true })
+    t.unique(['week_day', 'time'], {
+      indexName: 'workout_schedule_slot_unique',
+      predicate: knex.whereNull('deleted_at'),
+    })
   })
-
-  await knex.raw(
-    'create unique index workout_schedule_slot_unique on workout_schedule (week_day, time) where deleted_at is null'
-  )
 }
 
 export async function down(knex: Knex): Promise<void> {

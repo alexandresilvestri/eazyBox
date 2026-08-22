@@ -13,23 +13,6 @@ export async function up(knex: Knex): Promise<void> {
     $$
   `)
 
-  const password = process.env.APP_DB_PASSWORD
-  if (password) {
-    await knex.raw("select set_config('app.bootstrap_password', ?, false)", [
-      password,
-    ])
-    await knex.raw(`
-      do $$
-      begin
-        execute format(
-          'alter role ${APP_ROLE} with password %L',
-          current_setting('app.bootstrap_password')
-        );
-      end
-      $$
-    `)
-  }
-
   await knex.raw(`grant usage on schema public, app to ${APP_ROLE}`)
   await knex.raw(
     `grant select, insert, update, delete on all tables in schema public to ${APP_ROLE}`
@@ -44,13 +27,6 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  await knex.raw(`
-    alter default privileges in schema public
-      revoke select, insert, update, delete on tables from ${APP_ROLE}
-  `)
-  await knex.raw(
-    `revoke all on all tables in schema public from ${APP_ROLE}`
-  )
-  await knex.raw(`revoke usage on schema public, app from ${APP_ROLE}`)
+  await knex.raw(`drop owned by ${APP_ROLE}`)
   await knex.raw(`drop role if exists ${APP_ROLE}`)
 }

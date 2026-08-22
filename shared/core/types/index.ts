@@ -3,6 +3,9 @@ export type User = {
   email: string;
   firstName: string;
   lastName: string;
+  isActive: boolean;
+  isAdmin: boolean;
+  isCoach: boolean;
   createdAt: string;
   updatedAt: string;
 };

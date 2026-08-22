@@ -1,5 +1,9 @@
 import type { Knex } from 'knex'
 
+const ownerConnection =
+  process.env.DATABASE_OWNER_URL ??
+  `postgres://${process.env.DB_USER ?? 'postgres'}@${process.env.DB_HOST ?? 'localhost'}:${process.env.DB_PORT ?? 5432}/${process.env.DB_NAME ?? 'eazybox'}`
+
 const baseConfig: Knex.Config = {
   client: 'pg',
   migrations: {
@@ -15,17 +19,19 @@ const baseConfig: Knex.Config = {
 const config: Record<string, Knex.Config> = {
   development: {
     ...baseConfig,
-    connection: process.env.DATABASE_URL ?? {
-      host: process.env.DB_HOST ?? 'localhost',
-      port: Number(process.env.DB_PORT ?? 5432),
-      user: process.env.DB_USER ?? 'postgres',
-      database: process.env.DB_NAME ?? 'eazybox',
-    },
+    connection: ownerConnection,
     pool: { min: 1, max: 10 },
+  },
+  test: {
+    ...baseConfig,
+    connection:
+      process.env.DATABASE_TEST_URL ??
+      'postgres://postgres@localhost:5432/eazybox_test',
+    pool: { min: 1, max: 5 },
   },
   production: {
     ...baseConfig,
-    connection: process.env.DATABASE_URL,
+    connection: ownerConnection,
     pool: { min: 2, max: 20 },
   },
 }

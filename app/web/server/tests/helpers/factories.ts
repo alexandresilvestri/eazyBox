@@ -7,6 +7,8 @@ type UserOverrides = Partial<
 
 export const TEST_PASSWORD = 'password123'
 
+const passwordDigest = Bun.password.hash(TEST_PASSWORD)
+
 let sequence = 0
 const nextEmail = () => `user${++sequence}@test.com`
 
@@ -14,7 +16,7 @@ export async function createUser(overrides: UserOverrides = {}): Promise<User> {
   const [user] = await owner('users')
     .insert({
       email: overrides.email ?? nextEmail(),
-      password: await Bun.password.hash(TEST_PASSWORD),
+      password: await passwordDigest,
       first_name: overrides.firstName ?? 'Test',
       last_name: overrides.lastName ?? 'User',
       is_active: overrides.isActive ?? true,

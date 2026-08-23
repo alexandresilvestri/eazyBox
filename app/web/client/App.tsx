@@ -1,6 +1,12 @@
+import { BrowserRouter, Route, Routes } from 'react-router'
 import { AuthProvider, useAuth } from '@/auth-context'
-import { Dashboard } from '@/components/dashboard'
-import { LoginForm } from '@/components/login-form'
+import { ConsoleShell } from '@/components/layout/ConsoleShell'
+import { Entrar } from '@/pages/Entrar'
+import { Grade } from '@/pages/Grade'
+import { Membros } from '@/pages/Membros'
+import { Painel } from '@/pages/Painel'
+import { Programacao } from '@/pages/Programacao'
+import { Sessoes } from '@/pages/Sessoes'
 
 function Gate() {
   const { user, loading } = useAuth()
@@ -8,21 +14,35 @@ function Gate() {
   if (loading) {
     return (
       <main
-        className="flex min-h-screen items-center justify-center"
+        className="flex min-h-dvh items-center justify-center"
         data-testid="loading"
       >
-        <p className="text-sm text-muted-foreground">Carregando...</p>
+        <p className="text-xs text-ink-2">Carregando...</p>
       </main>
     )
   }
 
-  return user ? <Dashboard /> : <LoginForm />
+  if (!user) return <Entrar />
+
+  return (
+    <Routes>
+      <Route element={<ConsoleShell />}>
+        <Route index element={<Painel />} />
+        <Route path="programacao" element={<Programacao />} />
+        <Route path="grade" element={<Grade />} />
+        <Route path="sessoes" element={<Sessoes />} />
+        <Route path="membros" element={<Membros />} />
+      </Route>
+    </Routes>
+  )
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Gate />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <Gate />
+      </AuthProvider>
+    </BrowserRouter>
   )
 }

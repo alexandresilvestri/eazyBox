@@ -2,7 +2,7 @@
 
 Bun monorepo. Workspaces: `app/web` (Hono API + React 19 client), `app/mobile` (Expo), `shared` (`@eazybox/shared`, cross-platform types and Zod schemas).
 
-Bun only — no Node, no Vite, no webpack. The web client is bundled by Bun's native HTML import (`app/web/server/server.ts` imports `../client/index.html` directly).
+Bun only — no Node, no Vite, no webpack. **One carve-out:** Playwright (`@playwright/test`, `@playwright/mcp`) runs on Node. It is dev-only, never enters the server or client bundle, and is the sanctioned exception — do not remove it on sight. The web client is bundled by Bun's native HTML import (`app/web/server/server.ts` imports `../client/index.html` directly).
 
 ## Commands
 
@@ -17,11 +17,16 @@ From the repo root:
 | `make migrate-create <name>` | Scaffold a migration |
 | `make seed` | Run seeds |
 | `make test` | Run the Bun test suite |
+| `make test-e2e` | Run the Playwright E2E suite |
 | `make pgcli` | Open a psql session |
 
 From `app/web`: `bun run lint`, `bun run lint:fix`, `bun run format`, `bun run typecheck`.
 
-Tests are `bun test` (no other runner). `app/web/bunfig.toml` preloads `server/tests/setup.ts`, which creates `eazybox_test`, migrates it, and truncates between tests. The suite shares one database, so it **must** run serially — `bun run test` passes `--parallel=1`. Bare `bun test` runs files in parallel workers and they will wipe each other's fixtures.
+Server tests are `bun test`; E2E is Playwright. There is no third runner. `app/web/bunfig.toml` preloads `server/tests/setup.ts`, which creates `eazybox_test`, migrates it, and truncates between tests. The suite shares one database, so it **must** run serially — `bun run test` passes `--parallel=1`. Bare `bun test` runs files in parallel workers and they will wipe each other's fixtures.
+
+`bunfig.toml` sets `[test] root = "./server"`. Without it `bun test` also matches `e2e/*.spec.ts` and tries to run Playwright specs under Bun.
+
+E2E is `make test-e2e` (Playwright, `app/web/e2e/`). It owns a **third** database, `eazybox_e2e`, on port 3100 — never `eazybox_test`, which `bun test` truncates between tests. `e2e/global-setup.ts` runs under Node, so it shells out to `server/scripts/create-admin.ts` under `bun` rather than hashing passwords itself.
 
 `bun run --filter @eazybox/web admin:create` bootstraps the first admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 
@@ -217,6 +222,7 @@ Authorization is enforced twice: `requireAdmin()` / `requireStaff()` in `routes/
 - **Never put `deleted_at is null` in a SELECT policy.** Postgres applies SELECT policies to the *new* row of an UPDATE, so a soft delete would make the row invisible to the statement writing it and fail. Soft-delete filtering lives in `models/`.
 - Pre-identity reads go through `SECURITY DEFINER` functions (`app.find_login`, `app.find_identity`). These are the only paths that bypass policies; do not add more without a reason.
 - `cached()` may only wrap identity-invariant reads (`workouts`, `workout_schedule`, `workout_sessions`). Anything RLS filters per user must skip the cache or one member's rows will be served to another.
+- Cache prefixes live in `services/constants.ts` as `CACHE_PREFIX` / `CACHE_PREFIXES`. A new cached resource must add its prefix there, because `server/tests/setup.ts` clears that same list between tests — truncating tables bypasses the service layer, so nothing else invalidates Redis.
 
 # Migrations run on Node, not Bun
 

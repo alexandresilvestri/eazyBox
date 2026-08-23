@@ -1,20 +1,11 @@
-import { jwtVerify } from 'jose'
 import { getCookie } from 'hono/cookie'
-import type { MiddlewareHandler } from 'hono'
-import type { AppEnv, AuthContext } from '../context'
+import type { Context, MiddlewareHandler } from 'hono'
+import { SESSION_COOKIE, verifyAccessToken } from '../jwt'
+import type { AppEnv } from '../context'
 
-const SESSION_COOKIE = 'session'
 const BEARER_PREFIX = 'Bearer '
 
-const secret = () => {
-  const value = process.env.JWT_SECRET
-  if (!value) {
-    throw new Error('JWT_SECRET is not set')
-  }
-  return new TextEncoder().encode(value)
-}
-
-const readToken = (c: Parameters<MiddlewareHandler<AppEnv>>[0]) => {
+const readToken = (c: Context<AppEnv>) => {
   const header = c.req.header('Authorization')
   if (header?.startsWith(BEARER_PREFIX)) {
     return header.slice(BEARER_PREFIX.length)
@@ -29,12 +20,7 @@ export const authenticate = (): MiddlewareHandler<AppEnv> => async (c, next) => 
   }
 
   try {
-    const { payload } = await jwtVerify(token, secret())
-    c.set('auth', {
-      userId: String(payload.sub),
-      isAdmin: payload.isAdmin === true,
-      isCoach: payload.isCoach === true,
-    } satisfies AuthContext)
+    c.set('auth', await verifyAccessToken(token))
   } catch {
     return c.json({ error: 'Sessão inválida ou expirada' }, 401)
   }

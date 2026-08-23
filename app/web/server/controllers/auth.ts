@@ -7,21 +7,19 @@ import {
   InvalidCredentials,
   InvalidRefreshToken,
 } from '../errors'
+import {
+  ACCESS_TTL_SECONDS,
+  REFRESH_COOKIE,
+  REFRESH_TTL_SECONDS,
+  SESSION_COOKIE,
+} from '../jwt'
+import { INVALID_PAYLOAD } from './messages'
 import type { AppEnv } from '../context'
-
-const SESSION_COOKIE = 'session'
-const REFRESH_COOKIE = 'refresh'
-const ACCESS_MAX_AGE = 60 * 15
-const REFRESH_MAX_AGE = 60 * 60 * 24 * 30
-const INVALID_PAYLOAD = 'Dados inválidos'
 
 type Tokens = { accessToken: string; refreshToken: string }
 
-const wantsCookies = (c: Context<AppEnv>) =>
-  c.req.header('X-Client') !== 'mobile'
-
 const respondWithTokens = (c: Context<AppEnv>, tokens: Tokens) => {
-  if (!wantsCookies(c)) {
+  if (c.get('transport') === 'token') {
     return c.json(tokens)
   }
 
@@ -34,11 +32,11 @@ const respondWithTokens = (c: Context<AppEnv>, tokens: Tokens) => {
 
   setCookie(c, SESSION_COOKIE, tokens.accessToken, {
     ...options,
-    maxAge: ACCESS_MAX_AGE,
+    maxAge: ACCESS_TTL_SECONDS,
   })
   setCookie(c, REFRESH_COOKIE, tokens.refreshToken, {
     ...options,
-    maxAge: REFRESH_MAX_AGE,
+    maxAge: REFRESH_TTL_SECONDS,
   })
   return c.json({ ok: true })
 }
@@ -63,12 +61,13 @@ export const login = async (c: Context<AppEnv>) => {
 }
 
 const readRefreshToken = async (c: Context<AppEnv>) => {
-  const body = await c.req.json().catch(() => null)
-  const parsed = refreshSchema.safeParse(body)
-  if (parsed.success) {
-    return parsed.data.refreshToken
+  if (c.get('transport') === 'cookie') {
+    return getCookie(c, REFRESH_COOKIE)
   }
-  return getCookie(c, REFRESH_COOKIE)
+  const parsed = refreshSchema.safeParse(
+    await c.req.json().catch(() => null)
+  )
+  return parsed.success ? parsed.data.refreshToken : undefined
 }
 
 export const refresh = async (c: Context<AppEnv>) => {

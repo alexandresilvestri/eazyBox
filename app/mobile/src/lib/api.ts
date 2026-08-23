@@ -31,7 +31,6 @@ export async function apiFetch<T>(
     ...init,
     headers: {
       "Content-Type": "application/json",
-      "X-Client": "mobile",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...init.headers,
     },

@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { authRoutes } from './auth'
+import { createAuthRoutes } from './auth'
 import { checkinsRoutes } from './checkins'
 import { usersRoutes } from './users'
 import { workoutScheduleRoutes } from './workout-schedule'
@@ -26,15 +26,14 @@ routes.get('/health', async (c) =>
   })
 )
 
-routes.route('/auth', authRoutes)
+routes.route('/auth', createAuthRoutes('cookie'))
+routes.route('/mobile/auth', createAuthRoutes('token'))
 
-for (const [path] of PROTECTED) {
-  routes.use(path, authenticate(), withRlsContext())
-  routes.use(`${path}/*`, authenticate(), withRlsContext())
-}
-
+const guarded = new Hono<AppEnv>()
+guarded.use('*', authenticate(), withRlsContext())
 for (const [path, router] of PROTECTED) {
-  routes.route(path, router)
+  guarded.route(path, router)
 }
+routes.route('/', guarded)
 
 export default routes

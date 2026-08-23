@@ -6,9 +6,12 @@ export type AuthContext = {
   isCoach: boolean
 }
 
+export type Transport = 'cookie' | 'token'
+
 export type AppEnv = {
   Variables: {
     auth: AuthContext
     services: Services
+    transport: Transport
   }
 }

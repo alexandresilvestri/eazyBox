@@ -1,4 +1,5 @@
 import Knex from 'knex'
+import { redis } from '../../redis'
 import { OWNER_ADMIN_URL, TEST_DB_NAME } from './env'
 
 const MIGRATIONS_DIR = new URL('../../db/migrations', import.meta.url).pathname
@@ -31,4 +32,8 @@ export async function createTestDatabase() {
 
 export function truncateAll() {
   return owner.raw(`truncate ${TABLES.join(', ')} restart identity cascade`)
+}
+
+export function clearCache() {
+  return redis.send('FLUSHDB', [])
 }

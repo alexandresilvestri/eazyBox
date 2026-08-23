@@ -17,8 +17,7 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState | null>(null)
 
-const fetchMe = () =>
-  apiFetch<User>('/auth/me').catch(() => null)
+const fetchMe = () => apiFetch<User>('/auth/me').catch(() => null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)

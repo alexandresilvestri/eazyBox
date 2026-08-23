@@ -1,13 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
-import { ADMIN } from './fixtures'
-
-const login = async (page: Page) => {
-  await page.goto('/')
-  await page.getByTestId('login-email').fill(ADMIN.email)
-  await page.getByTestId('login-password').fill(ADMIN.password)
-  await page.getByTestId('login-submit').click()
-  await expect(page.getByTestId('dashboard')).toBeVisible()
-}
+import { expect, test } from '@playwright/test'
+import { login } from './fixtures'
 
 test('a visitor with no session sees the login form', async ({ page }) => {
   await page.goto('/')

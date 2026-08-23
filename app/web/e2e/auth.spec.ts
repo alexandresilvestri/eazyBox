@@ -1,13 +1,8 @@
 import { expect, test } from '@playwright/test'
-import { ADMIN } from './fixtures'
+import { ADMIN, login } from './fixtures'
 
 test('an admin logs in and reaches the gated dashboard', async ({ page }) => {
-  await page.goto('/')
-  await page.getByTestId('login-email').fill(ADMIN.email)
-  await page.getByTestId('login-password').fill(ADMIN.password)
-  await page.getByTestId('login-submit').click()
-
-  await expect(page.getByTestId('dashboard')).toBeVisible()
+  await login(page)
   await expect(page.getByTestId('current-user')).toContainText(ADMIN.email)
 })
 

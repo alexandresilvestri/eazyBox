@@ -64,9 +64,7 @@ const readRefreshToken = async (c: Context<AppEnv>) => {
   if (c.get('transport') === 'cookie') {
     return getCookie(c, REFRESH_COOKIE)
   }
-  const parsed = refreshSchema.safeParse(
-    await c.req.json().catch(() => null)
-  )
+  const parsed = refreshSchema.safeParse(await c.req.json().catch(() => null))
   return parsed.success ? parsed.data.refreshToken : undefined
 }
 

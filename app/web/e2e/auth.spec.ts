@@ -32,7 +32,9 @@ test('an unknown email is rejected without revealing which field failed', async 
   )
 })
 
-test('the browser blocks submitting empty required fields', async ({ page }) => {
+test('the browser blocks submitting empty required fields', async ({
+  page,
+}) => {
   await page.goto('/')
   await page.getByTestId('login-submit').click()
 

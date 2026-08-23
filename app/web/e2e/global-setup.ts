@@ -1,11 +1,6 @@
 import { spawnSync } from 'node:child_process'
 import Knex from 'knex'
-import {
-  ADMIN,
-  E2E_ADMIN_URL,
-  E2E_DB_NAME,
-  E2E_OWNER_URL,
-} from './fixtures'
+import { ADMIN, E2E_ADMIN_URL, E2E_DB_NAME, E2E_OWNER_URL } from './fixtures'
 
 const MIGRATIONS_DIR = new URL('../server/db/migrations', import.meta.url)
   .pathname

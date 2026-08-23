@@ -2,7 +2,10 @@ import { owner } from './db'
 import type { User } from '@eazybox/shared'
 
 type UserOverrides = Partial<
-  Pick<User, 'email' | 'firstName' | 'lastName' | 'isActive' | 'isAdmin' | 'isCoach'>
+  Pick<
+    User,
+    'email' | 'firstName' | 'lastName' | 'isActive' | 'isAdmin' | 'isCoach'
+  >
 >
 
 export const TEST_PASSWORD = 'password123'
@@ -54,7 +57,11 @@ export async function createSession(sessionDate = '2026-08-24') {
     .select('id', 'week_day', 'time')
     .first()
   const slot = existing
-    ? { id: existing.id as string, weekDay: existing.week_day, time: existing.time }
+    ? {
+        id: existing.id as string,
+        weekDay: existing.week_day,
+        time: existing.time,
+      }
     : await createSlot()
   const workoutId = await createWorkout()
 

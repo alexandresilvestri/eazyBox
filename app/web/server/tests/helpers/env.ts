@@ -9,4 +9,6 @@ export const OWNER_ADMIN_URL =
   process.env.DATABASE_TEST_ADMIN_URL ??
   'postgres://postgres@localhost:5432/postgres'
 
-export const TEST_DB_NAME = new URL(process.env.DATABASE_TEST_URL).pathname.slice(1)
+export const TEST_DB_NAME = new URL(
+  process.env.DATABASE_TEST_URL
+).pathname.slice(1)

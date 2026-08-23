@@ -7,7 +7,11 @@ export const workoutScheduleRoutes = new Hono<AppEnv>()
 
 workoutScheduleRoutes.get('/', workoutScheduleController.list)
 workoutScheduleRoutes.get('/:id', workoutScheduleController.findById)
-workoutScheduleRoutes.post('/', requireAdmin(), workoutScheduleController.create)
+workoutScheduleRoutes.post(
+  '/',
+  requireAdmin(),
+  workoutScheduleController.create
+)
 workoutScheduleRoutes.patch(
   '/:id',
   requireAdmin(),

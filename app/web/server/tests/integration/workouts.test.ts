@@ -98,11 +98,16 @@ describe('soft delete', () => {
     const headers = await bearer(coach)
     const id = await createWorkout()
 
-    expect((await api('DELETE', `/workouts/${id}`, { headers })).status).toBe(204)
+    expect((await api('DELETE', `/workouts/${id}`, { headers })).status).toBe(
+      204
+    )
     expect((await api('GET', `/workouts/${id}`, { headers })).status).toBe(404)
     expect((await api('GET', '/workouts', { headers })).body).toHaveLength(0)
 
-    const row = await owner('workouts').select('deleted_at').where({ id }).first()
+    const row = await owner('workouts')
+      .select('deleted_at')
+      .where({ id })
+      .first()
     expect(row.deleted_at).not.toBeNull()
   })
 

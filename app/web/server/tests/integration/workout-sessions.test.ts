@@ -158,7 +158,8 @@ describe('update and delete', () => {
     const session = await createSession()
 
     expect(
-      (await api('DELETE', `/workout-sessions/${session.id}`, { headers })).status
+      (await api('DELETE', `/workout-sessions/${session.id}`, { headers }))
+        .status
     ).toBe(204)
     expect(
       (await api('GET', `/workout-sessions/${session.id}`, { headers })).status

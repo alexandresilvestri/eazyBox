@@ -10,16 +10,17 @@ const SET_SESSION_IDENTITY = `
     set_config('app.is_coach', ?, true)
 `
 
-export const withRlsContext = (): MiddlewareHandler<AppEnv> => async (c, next) => {
-  const { userId, isAdmin, isCoach } = c.get('auth')
+export const withRlsContext =
+  (): MiddlewareHandler<AppEnv> => async (c, next) => {
+    const { userId, isAdmin, isCoach } = c.get('auth')
 
-  await transaction(async (trx) => {
-    await trx.raw(SET_SESSION_IDENTITY, [
-      userId,
-      String(isAdmin),
-      String(isCoach),
-    ])
-    c.set('services', buildServices(buildModels(trx)))
-    await next()
-  })
-}
+    await transaction(async (trx) => {
+      await trx.raw(SET_SESSION_IDENTITY, [
+        userId,
+        String(isAdmin),
+        String(isCoach),
+      ])
+      c.set('services', buildServices(buildModels(trx)))
+      await next()
+    })
+  }

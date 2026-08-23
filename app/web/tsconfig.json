@@ -9,5 +9,5 @@
       "react-dom": ["./node_modules/@types/react-dom"]
     }
   },
-  "include": ["client", "server", "e2e", "playwright.config.ts"]
+  "include": ["client", "server", "scripts", "e2e", "playwright.config.ts"]
 }

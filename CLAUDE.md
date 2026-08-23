@@ -19,6 +19,7 @@ From the repo root:
 | `make test` | Run the Bun test suite |
 | `make test-e2e` | Run the Playwright E2E suite |
 | `make pgcli` | Open a psql session |
+| `bun run --filter @eazybox/web tokens` | Regenerate `app/web/client/tokens.css` from `shared/design/tokens.ts` |
 
 From `app/web`: `bun run lint`, `bun run lint:fix`, `bun run format`, `bun run typecheck`.
 
@@ -247,6 +248,14 @@ Authorization is enforced twice: `requireAdmin()` / `requireStaff()` in `routes/
 - Server-only shapes that must not reach a client (the `users` row including `password`) live in the model file, not in shared.
 
 Gotcha: `updateUserSchema` is `z.object({})`, so `PATCH /api/users/:id` strips every field. Define its fields before relying on that endpoint.
+
+---
+
+# Design system
+
+`DESIGN.md` is the visual system for both clients. `shared/design/tokens.ts` is the single source of truth for colour, type, radius and motion: the web generates `app/web/client/tokens.css` from it (`bun run tokens`, output committed) and the mobile app imports `design.theme(scheme)` into `StyleSheet.create`. No component declares a hex.
+
+Web is Tailwind v4 CSS-first — there is no `tailwind.config.*`. Do not add one.
 
 ---
 

@@ -156,6 +156,16 @@ describe('update', () => {
     expect(row.is_admin).toBe(false)
   })
 
+  test('a duplicate email on update returns 409, not 500', async () => {
+    const admin = await createUser({ isAdmin: true })
+    const taken = await createUser()
+    const res = await api('PATCH', `/users/${admin.id}`, {
+      headers: await bearer(admin),
+      body: { email: taken.email },
+    })
+    expect(res.status).toBe(409)
+  })
+
   test('updating another member returns 404', async () => {
     const member = await createUser()
     const other = await createUser()

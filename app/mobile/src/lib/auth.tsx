@@ -1,9 +1,7 @@
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -26,7 +24,7 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState | null>(null);
 
-const fetchMe = () => apiFetch<User>("/auth/me").catch(() => null);
+const fetchMe = () => apiFetch<User>("/mobile/auth/me").catch(() => null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -44,33 +42,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const tokens = await apiFetch<Tokens>("/auth/login", {
+  async function login(email: string, password: string) {
+    const tokens = await apiFetch<Tokens>("/mobile/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
     await saveTokens(tokens);
     setUser(await fetchMe());
-  }, []);
+  }
 
-  const logout = useCallback(async () => {
+  async function logout() {
     const refreshToken = await readRefreshToken();
     if (refreshToken) {
-      await apiFetch("/auth/logout", {
+      await apiFetch("/mobile/auth/logout", {
         method: "POST",
         body: JSON.stringify({ refreshToken }),
       }).catch(() => undefined);
     }
     await clearTokens();
     setUser(null);
-  }, []);
+  }
 
-  const value = useMemo(
-    () => ({ user, loading, login, logout }),
-    [user, loading, login, logout],
+  return (
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
+      {children}
+    </AuthContext.Provider>
   );
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

@@ -4,10 +4,8 @@ import { bearer } from '../helpers/auth'
 import { api } from '../helpers/request'
 import { owner } from '../helpers/db'
 
-const MOBILE = { 'X-Client': 'mobile' }
-
 const login = (email: string, password = TEST_PASSWORD) =>
-  api('POST', '/auth/login', { headers: MOBILE, body: { email, password } })
+  api('POST', '/mobile/auth/login', { body: { email, password } })
 
 describe('login', () => {
   test('returns a token pair for valid credentials', async () => {
@@ -52,8 +50,7 @@ describe('login', () => {
   })
 
   test('rejects an invalid payload', async () => {
-    const res = await api('POST', '/auth/login', {
-      headers: MOBILE,
+    const res = await api('POST', '/mobile/auth/login', {
       body: { email: 'not-an-email' },
     })
     expect(res.status).toBe(400)
@@ -64,8 +61,7 @@ describe('refresh', () => {
   test('rotates the token pair', async () => {
     const user = await createUser()
     const first = await login(user.email)
-    const res = await api('POST', '/auth/refresh', {
-      headers: MOBILE,
+    const res = await api('POST', '/mobile/auth/refresh', {
       body: { refreshToken: first.body.refreshToken },
     })
     expect(res.status).toBe(200)
@@ -76,14 +72,13 @@ describe('refresh', () => {
     const user = await createUser()
     const first = await login(user.email)
     const body = { refreshToken: first.body.refreshToken }
-    await api('POST', '/auth/refresh', { headers: MOBILE, body })
-    const replay = await api('POST', '/auth/refresh', { headers: MOBILE, body })
+    await api('POST', '/mobile/auth/refresh', { body })
+    const replay = await api('POST', '/mobile/auth/refresh', { body })
     expect(replay.status).toBe(401)
   })
 
   test('rejects a garbage refresh token', async () => {
-    const res = await api('POST', '/auth/refresh', {
-      headers: MOBILE,
+    const res = await api('POST', '/mobile/auth/refresh', {
       body: { refreshToken: 'not-a-jwt' },
     })
     expect(res.status).toBe(401)
@@ -94,8 +89,7 @@ describe('refresh', () => {
     const first = await login(user.email)
     await owner('users').where({ id: user.id }).update({ is_admin: false })
 
-    const rotated = await api('POST', '/auth/refresh', {
-      headers: MOBILE,
+    const rotated = await api('POST', '/mobile/auth/refresh', {
       body: { refreshToken: first.body.refreshToken },
     })
     const res = await api('GET', '/users', {
@@ -111,10 +105,10 @@ describe('logout', () => {
     const first = await login(user.email)
     const body = { refreshToken: first.body.refreshToken }
 
-    const out = await api('POST', '/auth/logout', { headers: MOBILE, body })
+    const out = await api('POST', '/mobile/auth/logout', { body })
     expect(out.status).toBe(204)
 
-    const after = await api('POST', '/auth/refresh', { headers: MOBILE, body })
+    const after = await api('POST', '/mobile/auth/refresh', { body })
     expect(after.status).toBe(401)
   })
 })

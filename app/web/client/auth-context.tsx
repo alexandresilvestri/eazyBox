@@ -1,9 +1,7 @@
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
   type ReactNode,
 } from 'react'
@@ -38,25 +36,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const login = useCallback(async (email: string, password: string) => {
+  async function login(email: string, password: string) {
     await apiFetch('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     })
     setUser(await fetchMe())
-  }, [])
+  }
 
-  const logout = useCallback(async () => {
+  async function logout() {
     await apiFetch('/auth/logout', { method: 'POST' }).catch(() => undefined)
     setUser(null)
-  }, [])
+  }
 
-  const value = useMemo(
-    () => ({ user, loading, login, logout }),
-    [user, loading, login, logout]
+  return (
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
+      {children}
+    </AuthContext.Provider>
   )
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

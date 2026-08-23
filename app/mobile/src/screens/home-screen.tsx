@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { WorkoutSession } from "@eazybox/shared";
@@ -30,7 +30,7 @@ export function HomeScreen() {
     };
   }, []);
 
-  const checkIn = useCallback(async (workoutSessionId: string) => {
+  async function checkIn(workoutSessionId: string) {
     try {
       await apiFetch("/checkins", {
         method: "POST",
@@ -40,7 +40,7 @@ export function HomeScreen() {
     } catch (err) {
       setStatus(err instanceof Error ? err.message : "Erro inesperado");
     }
-  }, []);
+  }
 
   return (
     <ThemedView style={styles.container}>

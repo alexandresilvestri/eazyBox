@@ -1,86 +1,65 @@
-import { Platform, StyleSheet, Text, type TextProps } from "react-native";
+import { design } from "@eazybox/shared";
+import { StyleSheet, Text, type TextProps } from "react-native";
 
-import { Fonts, ThemeColor } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 
+export type TextVariant =
+  "body" | "bodyBold" | "label" | "eyebrow" | "board" | "time" | "hero";
+
 export type ThemedTextProps = TextProps & {
-  type?:
-    | "default"
-    | "title"
-    | "small"
-    | "smallBold"
-    | "subtitle"
-    | "link"
-    | "linkPrimary"
-    | "code";
-  themeColor?: ThemeColor;
+  variant?: TextVariant;
+  themeColor?: design.ThemeColor;
 };
 
 export function ThemedText({
   style,
-  type = "default",
-  themeColor,
+  variant = "body",
+  themeColor = "ink1",
   ...rest
 }: ThemedTextProps) {
   const theme = useTheme();
 
   return (
     <Text
-      style={[
-        { color: theme[themeColor ?? "text"] },
-        type === "default" && styles.default,
-        type === "title" && styles.title,
-        type === "small" && styles.small,
-        type === "smallBold" && styles.smallBold,
-        type === "subtitle" && styles.subtitle,
-        type === "link" && styles.link,
-        type === "linkPrimary" && styles.linkPrimary,
-        type === "code" && styles.code,
-        style,
-      ]}
+      style={[{ color: theme[themeColor] }, styles[variant], style]}
       {...rest}
     />
   );
 }
 
 const styles = StyleSheet.create({
-  small: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 500,
+  body: {
+    ...design.type("sm"),
+    fontFamily: design.font.sans,
+    letterSpacing: design.tracking.body * design.text.sm.size,
   },
-  smallBold: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 700,
+  bodyBold: {
+    ...design.type("sm"),
+    fontFamily: design.font.sansBold,
+    letterSpacing: design.tracking.bold * design.text.sm.size,
   },
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: 500,
+  label: {
+    ...design.type("xs"),
+    fontFamily: design.font.sans,
   },
-  title: {
-    fontSize: 48,
-    fontWeight: 600,
-    lineHeight: 52,
+  eyebrow: {
+    ...design.type("2xs"),
+    fontFamily: design.font.sansBold,
+    letterSpacing: design.tracking.label * design.text["2xs"].size,
+    textTransform: "uppercase",
   },
-  subtitle: {
-    fontSize: 32,
-    lineHeight: 44,
-    fontWeight: 600,
+  board: {
+    ...design.type("board"),
+    fontFamily: design.font.mono,
   },
-  link: {
-    lineHeight: 30,
-    fontSize: 14,
+  time: {
+    ...design.type("time"),
+    fontFamily: design.font.display,
+    letterSpacing: design.tracking.display * design.display.time.size,
   },
-  linkPrimary: {
-    lineHeight: 30,
-    fontSize: 14,
-    color: "#3c87f7",
-  },
-  code: {
-    fontFamily: Fonts.mono,
-    fontWeight: Platform.select({ android: 700 }) ?? 500,
-    fontSize: 12,
+  hero: {
+    ...design.type("hero"),
+    fontFamily: design.font.display,
+    letterSpacing: design.tracking.display * design.display.hero.size,
   },
 });

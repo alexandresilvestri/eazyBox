@@ -1,25 +1,48 @@
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 
 const ACCESS_KEY = "eazybox.accessToken";
 const REFRESH_KEY = "eazybox.refreshToken";
 
 const extra = Constants.expoConfig?.extra as { apiUrl?: string } | undefined;
-export const API_URL = extra?.apiUrl ?? "http://localhost:3000";
+export const API_URL =
+  process.env.EXPO_PUBLIC_API_URL ?? extra?.apiUrl ?? "http://localhost:3000";
 
 export type Tokens = { accessToken: string; refreshToken: string };
 
-export const saveTokens = async ({ accessToken, refreshToken }: Tokens) => {
-  await SecureStore.setItemAsync(ACCESS_KEY, accessToken);
-  await SecureStore.setItemAsync(REFRESH_KEY, refreshToken);
+const isWeb = Platform.OS === "web";
+
+const writeToken = async (key: string, value: string) => {
+  if (isWeb) {
+    localStorage.setItem(key, value);
+    return;
+  }
+  await SecureStore.setItemAsync(key, value);
 };
 
-export const readAccessToken = () => SecureStore.getItemAsync(ACCESS_KEY);
-export const readRefreshToken = () => SecureStore.getItemAsync(REFRESH_KEY);
+const readToken = async (key: string) =>
+  isWeb ? localStorage.getItem(key) : SecureStore.getItemAsync(key);
+
+const deleteToken = async (key: string) => {
+  if (isWeb) {
+    localStorage.removeItem(key);
+    return;
+  }
+  await SecureStore.deleteItemAsync(key);
+};
+
+export const saveTokens = async ({ accessToken, refreshToken }: Tokens) => {
+  await writeToken(ACCESS_KEY, accessToken);
+  await writeToken(REFRESH_KEY, refreshToken);
+};
+
+export const readAccessToken = () => readToken(ACCESS_KEY);
+export const readRefreshToken = () => readToken(REFRESH_KEY);
 
 export const clearTokens = async () => {
-  await SecureStore.deleteItemAsync(ACCESS_KEY);
-  await SecureStore.deleteItemAsync(REFRESH_KEY);
+  await deleteToken(ACCESS_KEY);
+  await deleteToken(REFRESH_KEY);
 };
 
 export async function apiFetch<T>(

@@ -1,20 +1,16 @@
 import { useState } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  TextInput,
-} from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Spacing } from "@/constants/theme";
+import { Radius, Spacing } from "@/constants/theme";
 import { useTheme } from "@/hooks/use-theme";
 import { useAuth } from "@/lib/auth";
 
 export function LoginScreen() {
   const { login } = useAuth();
-  const palette = useTheme();
+  const theme = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -34,71 +30,91 @@ export function LoginScreen() {
 
   const field = [
     styles.input,
-    { color: palette.text, backgroundColor: palette.backgroundElement },
+    {
+      color: theme.ink1,
+      backgroundColor: theme.fieldFill,
+      borderColor: theme.fieldBorder,
+    },
   ];
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={styles.screen}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedText type="title">EazyBox</ThemedText>
-        <ThemedText type="small" themeColor="textSecondary">
-          Entre para fazer seu check-in
-        </ThemedText>
-
-        <TextInput
-          style={field}
-          placeholder="E-mail"
-          placeholderTextColor={palette.textSecondary}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          style={field}
-          placeholder="Senha"
-          placeholderTextColor={palette.textSecondary}
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        {error ? (
-          <ThemedText type="small" themeColor="textSecondary">
-            {error}
+        <View style={styles.brand}>
+          <ThemedText variant="hero">EAZYBOX</ThemedText>
+          <ThemedText variant="eyebrow" themeColor="ink3">
+            Treine, marque presença
           </ThemedText>
-        ) : null}
+        </View>
 
-        <Pressable
-          style={[styles.button, { backgroundColor: palette.backgroundSelected }]}
-          disabled={submitting}
-          onPress={() => void handleSubmit()}
-        >
-          <ThemedText type="smallBold">
-            {submitting ? "Entrando..." : "Entrar"}
-          </ThemedText>
-        </Pressable>
+        <View style={styles.form}>
+          <TextInput
+            style={field}
+            placeholder="E-mail"
+            placeholderTextColor={theme.ink3}
+            autoCapitalize="none"
+            autoComplete="email"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+          />
+          <TextInput
+            style={field}
+            placeholder="Senha"
+            placeholderTextColor={theme.ink3}
+            autoComplete="current-password"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+
+          {error ? (
+            <ThemedText variant="label" themeColor="errorInk">
+              {error}
+            </ThemedText>
+          ) : null}
+
+          <Pressable
+            accessibilityRole="button"
+            disabled={submitting}
+            onPress={() => void handleSubmit()}
+            style={({ pressed }) => [
+              styles.button,
+              {
+                backgroundColor: theme.accentSolid,
+                opacity: submitting ? 0.5 : pressed ? 0.85 : 1,
+              },
+            ]}
+          >
+            <ThemedText variant="bodyBold" themeColor="accentInk">
+              {submitting ? "Entrando..." : "Entrar"}
+            </ThemedText>
+          </Pressable>
+        </View>
       </SafeAreaView>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  safeArea: {
-    flex: 1,
-    justifyContent: "center",
-    gap: Spacing.three,
-    paddingHorizontal: Spacing.four,
+  brand: { gap: Spacing.two },
+  button: {
+    alignItems: "center",
+    borderRadius: Radius.control,
+    paddingVertical: Spacing.three,
   },
+  form: { gap: Spacing.three },
   input: {
-    borderRadius: Spacing.three,
+    borderRadius: Radius.control,
+    borderWidth: 1,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.three,
   },
-  button: {
-    alignItems: "center",
-    borderRadius: Spacing.three,
-    paddingVertical: Spacing.three,
+  safeArea: {
+    flex: 1,
+    gap: Spacing.six,
+    justifyContent: "center",
+    paddingHorizontal: Spacing.four,
   },
+  screen: { flex: 1 },
 });

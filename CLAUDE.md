@@ -173,7 +173,11 @@ usersRoutes.post('/', usersController.create)
 
 `errors/`: classes extending `Error` with a `name`, no HTTP status. Thrown by services, caught by controllers.
 
-`middlewares/`: `auth.ts` (JWT via `jose`), `errorHandler.ts`, `validations.ts`. A middleware is a function returning a `MiddlewareHandler`, attached in `routes/`, never in a controller.
+`middlewares/`: `auth.ts` (`authenticate`, `requireAdmin`, `requireStaff`), `rls.ts` (`withRlsContext`), `transport.ts` (`withTransport`), `errorHandler.ts`. A middleware is a function returning a `MiddlewareHandler`, attached in `routes/`, never in a controller.
+
+`jwt.ts` at the server root is the single owner of the access-token shape — `signAccessToken` / `verifyAccessToken`, the cookie names, and the TTLs. `services/auth.ts` signs, `middlewares/auth.ts` verifies, tests sign. Do not re-read `JWT_SECRET` anywhere else.
+
+Validation is `safeParse` on the shared schema inside the controller, with the message from `controllers/messages.ts`. `@hono/zod-validator` is a dependency and currently unused — moving the parse into a `validations.ts` middleware would delete ~45 duplicated lines and is a sanctioned simplification, not a rewrite.
 
 ---
 
@@ -217,7 +221,8 @@ export type Services = ReturnType<typeof buildServices>
 Authorization is enforced twice: `requireAdmin()` / `requireStaff()` in `routes/` as the readable first line, and Postgres RLS as the backstop for any route someone forgets to guard.
 
 - The runtime connects as **`app_user`** (`DATABASE_URL`), a non-superuser that RLS applies to. Migrations, seeds and scripts connect as the owner (`DATABASE_OWNER_URL`) and bypass policies — that is deliberate and is why `make migrate` works.
-- `authenticate()` verifies the JWT (cookie for web, `Authorization: Bearer` for mobile), then `withRlsContext()` opens a transaction and sets `app.user_id` / `app.is_admin` / `app.is_coach` via `set_config(..., true)`.
+- `authenticate()` verifies the JWT (cookie for web, `Authorization: Bearer` for mobile), then `withRlsContext()` opens a transaction and sets `app.user_id` / `app.is_admin` / `app.is_coach` via `set_config(..., true)`. Both are applied once, by the `guarded` sub-app in `routes/index.ts` — registering them per path runs them twice, opens two nested transactions, and wedges the connection pool at `pool.max` concurrent requests.
+- **Transport is chosen by the route, never by a request header.** `/api/auth/*` is the cookie mount, `/api/mobile/auth/*` the bearer mount, each fixed by `withTransport()` at wiring time. Sniffing something like `X-Client` would let an XSS payload ask for the refresh token in a JSON body and defeat `httpOnly`.
 - A member reading someone else's row gets **404, not 403** — RLS makes the row invisible before authorization can speak. Do not "fix" this to 403; it would leak existence.
 - **Never put `deleted_at is null` in a SELECT policy.** Postgres applies SELECT policies to the *new* row of an UPDATE, so a soft delete would make the row invisible to the statement writing it and fail. Soft-delete filtering lives in `models/`.
 - **Privilege is server-asserted, by decision.** `app.is_admin` / `app.is_coach` are set by `withRlsContext()` from verified JWT claims, so RLS enforces *identity* independently but takes *privilege* on trust. This is deliberate — deriving the flags from `users` in a `SECURITY DEFINER` helper was considered and declined. Do not "fix" it without revisiting the tradeoff below.
@@ -264,12 +269,13 @@ Using `posts` as the example, in order:
 1. `shared/core/types/index.ts` — `Post` type; `shared/core/schemas/posts.ts` — schemas, re-exported from `schemas/index.ts`
 2. `make migrate-create add_posts`, then fill the migration
 3. `server/models/post.ts` — `class PostModel` taking `Knex`
-4. `server/models/index.ts` — `export const postModel = new PostModel(db)`
+4. `server/models/index.ts` — add `posts: new PostModel(trx)` inside `buildModels`. Never `new PostModel(db)` — a pool-bound model carries no RLS identity.
 5. `server/services/posts.ts` — `class PostsService` taking `PostModel`
-6. `server/services/index.ts` — `export const postsService = new PostsService(postModel)`
-7. `server/controllers/posts.ts` — one exported function per operation
+6. `server/services/index.ts` — add `posts: new PostsService(models.posts)` inside `buildServices`
+7. `server/controllers/posts.ts` — one exported function per operation, reading `c.get('services').posts`
 8. `server/controllers/index.ts` — `export * as postsController from './posts'`
-9. `server/routes/posts.ts` — `export const postsRoutes`
-10. `server/routes/index.ts` — `routes.route('/posts', postsRoutes)`
-11. `bun run typecheck && bun run lint`
+9. `server/routes/posts.ts` — `export const postsRoutes`, with `requireAdmin()` / `requireStaff()` on the write verbs
+10. `server/routes/index.ts` — add `['/posts', postsRoutes]` to the **`PROTECTED` array**. Do not call `routes.route()` directly: only the array is mounted inside the `guarded` sub-app that applies `authenticate()` + `withRlsContext()`, so a direct registration ships an unauthenticated endpoint with no `services` on the context. `integration/routing.test.ts` asserts every entry rejects an untokened request.
+11. If the resource is cached, add its prefix to `CACHE_PREFIX` in `services/constants.ts`
+12. `bun run typecheck && bun run lint && bun run test`
 

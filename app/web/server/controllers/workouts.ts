@@ -1,9 +1,9 @@
 import type { Context } from 'hono'
 import { createWorkoutSchema, updateWorkoutSchema } from '@eazybox/shared'
 import { WorkoutNotFound } from '../errors'
+import { INVALID_PAYLOAD } from './messages'
 import type { AppEnv } from '../context'
 
-const INVALID_PAYLOAD = 'Dados inválidos'
 const NOT_FOUND = 'Treino não encontrado'
 
 export const list = async (c: Context<AppEnv>) =>

@@ -5,9 +5,9 @@ import {
   CheckinNotFound,
   WorkoutSessionNotFound,
 } from '../errors'
+import { INVALID_PAYLOAD } from './messages'
 import type { AppEnv } from '../context'
 
-const INVALID_PAYLOAD = 'Dados inválidos'
 
 export const list = async (c: Context<AppEnv>) =>
   c.json(await c.get('services').checkins.list())

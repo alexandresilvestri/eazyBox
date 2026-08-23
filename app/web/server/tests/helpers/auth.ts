@@ -1,17 +1,14 @@
-import { SignJWT } from 'jose'
+import { signAccessToken } from '../../jwt'
 import type { User } from '@eazybox/shared'
-
-const secret = () => new TextEncoder().encode(process.env.JWT_SECRET)
 
 export function tokenFor(
   user: Pick<User, 'id' | 'isAdmin' | 'isCoach'>,
   expiresIn = '5m'
 ) {
-  return new SignJWT({ isAdmin: user.isAdmin, isCoach: user.isCoach })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setSubject(user.id)
-    .setExpirationTime(expiresIn)
-    .sign(secret())
+  return signAccessToken(
+    { userId: user.id, isAdmin: user.isAdmin, isCoach: user.isCoach },
+    expiresIn
+  )
 }
 
 export const bearer = async (

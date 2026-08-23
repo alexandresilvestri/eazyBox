@@ -1,5 +1,10 @@
-import { SignJWT, jwtVerify } from 'jose'
 import { redis } from '../redis'
+import {
+  REFRESH_TTL_SECONDS,
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+} from '../jwt'
 import {
   InactiveUser,
   InvalidCredentials,
@@ -8,18 +13,7 @@ import {
 import type { AuthModel, IdentityRow } from '../models/auth'
 import type { LoginInput } from '@eazybox/shared'
 
-const ACCESS_TTL = '15m'
-const REFRESH_TTL = '30d'
-const REFRESH_TTL_SECONDS = 60 * 60 * 24 * 30
 const REFRESH_PREFIX = 'refresh:'
-
-const secret = () => {
-  const value = process.env.JWT_SECRET
-  if (!value) {
-    throw new Error('JWT_SECRET is not set')
-  }
-  return new TextEncoder().encode(value)
-}
 
 export class AuthService {
   constructor(private readonly auth: AuthModel) {}
@@ -27,21 +21,13 @@ export class AuthService {
   private async issue(identity: IdentityRow) {
     const jti = crypto.randomUUID()
 
-    const accessToken = await new SignJWT({
+    const accessToken = await signAccessToken({
+      userId: identity.id,
       isAdmin: identity.isAdmin,
       isCoach: identity.isCoach,
     })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setSubject(identity.id)
-      .setExpirationTime(ACCESS_TTL)
-      .sign(secret())
 
-    const refreshToken = await new SignJWT({})
-      .setProtectedHeader({ alg: 'HS256' })
-      .setSubject(identity.id)
-      .setJti(jti)
-      .setExpirationTime(REFRESH_TTL)
-      .sign(secret())
+    const refreshToken = await signRefreshToken(identity.id, jti)
 
     await redis.set(
       `${REFRESH_PREFIX}${jti}`,
@@ -73,9 +59,9 @@ export class AuthService {
     let jti: string | undefined
     let subject: string | undefined
     try {
-      const { payload } = await jwtVerify(refreshToken, secret())
-      jti = payload.jti
-      subject = payload.sub
+      const verified = await verifyRefreshToken(refreshToken)
+      jti = verified.jti
+      subject = verified.userId
     } catch {
       throw new InvalidRefreshToken()
     }

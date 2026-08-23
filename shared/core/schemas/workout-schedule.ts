@@ -1,14 +1,8 @@
 import { z } from "zod";
 
-export const weekDaySchema = z.enum([
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-  "sunday",
-]);
+import { WEEK_DAYS } from "../types";
+
+export const weekDaySchema = z.enum(WEEK_DAYS);
 
 export const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 

@@ -4,9 +4,9 @@ import {
   updateWorkoutScheduleSchema,
 } from '@eazybox/shared'
 import { ScheduleSlotTaken, WorkoutScheduleNotFound } from '../errors'
+import { INVALID_PAYLOAD } from './messages'
 import type { AppEnv } from '../context'
 
-const INVALID_PAYLOAD = 'Dados inválidos'
 const NOT_FOUND = 'Horário não encontrado'
 const SLOT_TAKEN = 'Já existe um horário nesse dia e hora'
 

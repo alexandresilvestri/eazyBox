@@ -1,9 +1,9 @@
 import type { Context } from 'hono'
 import { createUserSchema, updateUserSchema } from '@eazybox/shared'
 import { EmailAlreadyTaken, UserNotFound } from '../errors'
+import { INVALID_PAYLOAD } from './messages'
 import type { AppEnv } from '../context'
 
-const INVALID_PAYLOAD = 'Dados inválidos'
 const NOT_FOUND = 'Usuário não encontrado'
 
 export const list = async (c: Context<AppEnv>) =>

@@ -9,9 +9,9 @@ import {
   WorkoutScheduleNotFound,
   WorkoutSessionNotFound,
 } from '../errors'
+import { INVALID_PAYLOAD } from './messages'
 import type { AppEnv } from '../context'
 
-const INVALID_PAYLOAD = 'Dados inválidos'
 const NOT_FOUND = 'Sessão não encontrada'
 
 export const list = async (c: Context<AppEnv>) =>

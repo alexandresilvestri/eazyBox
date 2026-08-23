@@ -11,6 +11,10 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      - dependency-name: react-native
+      - dependency-name: react-native-worklets
+      - dependency-name: react-native-reanimated
 
   - package-ecosystem: github-actions
     directory: /

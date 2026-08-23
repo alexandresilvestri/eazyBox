@@ -59,6 +59,9 @@ jobs:
       - name: Lint mobile
         run: bun run --filter @eazybox/mobile lint
 
+      - name: Check native peer ranges
+        run: bun run --filter @eazybox/mobile check:peers
+
       - name: Server tests
         run: bun run test
         working-directory: app/web

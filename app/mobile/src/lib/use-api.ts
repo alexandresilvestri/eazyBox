@@ -5,14 +5,14 @@ import { apiFetch } from "@/lib/api";
 export function useApi<T>(path: string, initial: T) {
   const fallback = useRef(initial);
   const [data, setData] = useState<T>(initial);
-  const [loading, setLoading] = useState(true);
+  const [loadedPath, setLoadedPath] = useState<string | null>(null);
 
   const reload = useCallback(
     () =>
       apiFetch<T>(path)
         .then(setData)
         .catch(() => setData(fallback.current))
-        .finally(() => setLoading(false)),
+        .finally(() => setLoadedPath(path)),
     [path],
   );
 
@@ -20,5 +20,5 @@ export function useApi<T>(path: string, initial: T) {
     void reload();
   }, [reload]);
 
-  return { data, loading, reload };
+  return { data, loading: loadedPath !== path, reload };
 }

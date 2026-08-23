@@ -8,6 +8,7 @@ import {
 import type { User } from "@eazybox/shared";
 
 import {
+  ApiError,
   apiFetch,
   clearTokens,
   readRefreshToken,
@@ -24,7 +25,18 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState | null>(null);
 
-const fetchMe = () => apiFetch<User>("/mobile/auth/me").catch(() => null);
+const fetchMe = () => apiFetch<User>("/mobile/auth/me");
+
+const loadUser = async () => {
+  try {
+    return await fetchMe();
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 401) {
+      await clearTokens();
+    }
+    return null;
+  }
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -32,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    void fetchMe().then((me) => {
+    void loadUser().then((me) => {
       if (!active) return;
       setUser(me);
       setLoading(false);

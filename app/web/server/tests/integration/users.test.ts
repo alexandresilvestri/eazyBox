@@ -152,7 +152,10 @@ describe('update', () => {
       headers: await bearer(member),
       body: { firstName: 'X', isAdmin: true },
     })
-    const row = await owner('users').select('is_admin').where({ id: member.id }).first()
+    const row = await owner('users')
+      .select('is_admin')
+      .where({ id: member.id })
+      .first()
     expect(row.is_admin).toBe(false)
   })
 
@@ -189,7 +192,10 @@ describe('delete', () => {
     const after = await api('GET', `/users/${victim.id}`, { headers })
     expect(after.status).toBe(404)
 
-    const row = await owner('users').select('deleted_at').where({ id: victim.id }).first()
+    const row = await owner('users')
+      .select('deleted_at')
+      .where({ id: victim.id })
+      .first()
     expect(row.deleted_at).not.toBeNull()
   })
 

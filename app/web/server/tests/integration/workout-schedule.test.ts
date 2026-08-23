@@ -54,7 +54,10 @@ describe('write access', () => {
     const admin = await createUser({ isAdmin: true })
     const headers = await bearer(admin)
     await api('POST', '/workout-schedule', { headers, body: payload })
-    const res = await api('POST', '/workout-schedule', { headers, body: payload })
+    const res = await api('POST', '/workout-schedule', {
+      headers,
+      body: payload,
+    })
     expect(res.status).toBe(409)
   })
 
@@ -92,9 +95,15 @@ describe('write access', () => {
   test('the same slot can be recreated after a soft delete', async () => {
     const admin = await createUser({ isAdmin: true })
     const headers = await bearer(admin)
-    const created = await api('POST', '/workout-schedule', { headers, body: payload })
+    const created = await api('POST', '/workout-schedule', {
+      headers,
+      body: payload,
+    })
     await api('DELETE', `/workout-schedule/${created.body.id}`, { headers })
-    const again = await api('POST', '/workout-schedule', { headers, body: payload })
+    const again = await api('POST', '/workout-schedule', {
+      headers,
+      body: payload,
+    })
     expect(again.status).toBe(201)
   })
 })

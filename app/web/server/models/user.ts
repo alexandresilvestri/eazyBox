@@ -34,7 +34,9 @@ export class UserModel {
   }
 
   async insert(input: Omit<UserRow, keyof User> & Partial<User>) {
-    const [user] = await this.db('users').insert(input).returning(PUBLIC_COLUMNS)
+    const [user] = await this.db('users')
+      .insert(input)
+      .returning(PUBLIC_COLUMNS)
     return user as User
   }
 

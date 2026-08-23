@@ -68,7 +68,10 @@ describe('checkins policies', () => {
     const member = await createUser()
     const { id: sessionId } = await createSession()
     const inserted = await asRole({ userId: member.id }, (trx) =>
-      trx('checkins').insert({ user_id: member.id, workout_session_id: sessionId })
+      trx('checkins').insert({
+        user_id: member.id,
+        workout_session_id: sessionId,
+      })
     )
     expect(inserted).toBeDefined()
     expect(await countOf({ userId: member.id }, 'checkins')).toBe(1)
@@ -80,7 +83,10 @@ describe('checkins policies', () => {
     const { id: sessionId } = await createSession()
     await expect(
       asRole({ userId: member.id }, (trx) =>
-        trx('checkins').insert({ user_id: other.id, workout_session_id: sessionId })
+        trx('checkins').insert({
+          user_id: other.id,
+          workout_session_id: sessionId,
+        })
       )
     ).rejects.toThrow(/row-level security/)
   })
@@ -131,7 +137,9 @@ describe('checkins policies', () => {
       user_id: member.id,
       workout_session_id: sessionId,
     })
-    expect(await countOf({ userId: coach.id, isCoach: true }, 'checkins')).toBe(1)
+    expect(await countOf({ userId: coach.id, isCoach: true }, 'checkins')).toBe(
+      1
+    )
   })
 })
 
@@ -139,7 +147,9 @@ describe('staff-write tables', () => {
   test('a member cannot insert a workout', async () => {
     const member = await createUser()
     await expect(
-      asRole({ userId: member.id }, (trx) => trx('workouts').insert({ wod: 'x' }))
+      asRole({ userId: member.id }, (trx) =>
+        trx('workouts').insert({ wod: 'x' })
+      )
     ).rejects.toThrow(/row-level security/)
   })
 

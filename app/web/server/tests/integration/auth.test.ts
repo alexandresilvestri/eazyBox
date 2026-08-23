@@ -44,7 +44,9 @@ describe('login', () => {
 
   test('rejects a soft deleted account', async () => {
     const user = await createUser()
-    await owner('users').where({ id: user.id }).update({ deleted_at: new Date() })
+    await owner('users')
+      .where({ id: user.id })
+      .update({ deleted_at: new Date() })
     const res = await login(user.email)
     expect(res.status).toBe(401)
   })

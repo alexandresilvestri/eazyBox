@@ -16,14 +16,14 @@ function Gate() {
 }
 
 export default function RootLayout() {
-  const [loaded] = useFonts({
+  const [loaded, error] = useFonts({
     "Anton-Regular": require("@/assets/fonts/Anton-Regular.ttf"),
     "Inter-Regular": require("@/assets/fonts/Inter-Regular.ttf"),
     "Inter-Bold": require("@/assets/fonts/Inter-Bold.ttf"),
     "JetBrainsMono-Regular": require("@/assets/fonts/JetBrainsMono-Regular.ttf"),
   });
 
-  if (!loaded) return null;
+  if (!loaded && !error) return null;
 
   return (
     <AuthProvider>

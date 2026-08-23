@@ -5,7 +5,9 @@ import {
   WorkoutScheduleNotFound,
   WorkoutSessionNotFound,
 } from '../errors'
-import { isUniqueViolation, LIST_TTL_SECONDS } from './constants'
+import { isUniqueViolation, CACHE_PREFIX, LIST_TTL_SECONDS } from './constants'
+
+const PREFIX = CACHE_PREFIX.workoutSessions
 import type { WorkoutModel } from '../models/workout'
 import type { WorkoutScheduleModel } from '../models/workout-schedule'
 import type { WorkoutSessionModel } from '../models/workout-session'
@@ -13,8 +15,6 @@ import type {
   CreateWorkoutSessionInput,
   UpdateWorkoutSessionInput,
 } from '@eazybox/shared'
-
-const CACHE_PREFIX = 'workout-sessions:'
 
 export class WorkoutSessionsService {
   constructor(
@@ -25,7 +25,7 @@ export class WorkoutSessionsService {
 
   list(from?: string) {
     return cached(
-      `${CACHE_PREFIX}list:${from ?? 'all'}`,
+      `${PREFIX}list:${from ?? 'all'}`,
       () => this.sessions.findAll(from),
       LIST_TTL_SECONDS
     )
@@ -55,7 +55,7 @@ export class WorkoutSessionsService {
         weekDay: slot.weekDay,
         time: slot.time,
       })
-      await invalidate(CACHE_PREFIX)
+      await invalidate(PREFIX)
       return session
     } catch (err) {
       if (isUniqueViolation(err)) {
@@ -76,7 +76,7 @@ export class WorkoutSessionsService {
     if (!session) {
       throw new WorkoutSessionNotFound()
     }
-    await invalidate(CACHE_PREFIX)
+    await invalidate(PREFIX)
     return session
   }
 
@@ -85,6 +85,6 @@ export class WorkoutSessionsService {
     if (!deleted) {
       throw new WorkoutSessionNotFound()
     }
-    await invalidate(CACHE_PREFIX)
+    await invalidate(PREFIX)
   }
 }

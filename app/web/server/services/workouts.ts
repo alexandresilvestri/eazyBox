@@ -1,17 +1,17 @@
 import { cached, invalidate } from '../redis'
 import { WorkoutNotFound } from '../errors'
-import { LIST_TTL_SECONDS } from './constants'
+import { CACHE_PREFIX, LIST_TTL_SECONDS } from './constants'
+
+const PREFIX = CACHE_PREFIX.workouts
 import type { WorkoutModel } from '../models/workout'
 import type { CreateWorkoutInput, UpdateWorkoutInput } from '@eazybox/shared'
-
-const CACHE_PREFIX = 'workouts:'
 
 export class WorkoutsService {
   constructor(private readonly workouts: WorkoutModel) {}
 
   list() {
     return cached(
-      `${CACHE_PREFIX}list`,
+      `${PREFIX}list`,
       () => this.workouts.findAll(),
       LIST_TTL_SECONDS
     )
@@ -27,7 +27,7 @@ export class WorkoutsService {
 
   async create(input: CreateWorkoutInput) {
     const workout = await this.workouts.insert(input)
-    await invalidate(CACHE_PREFIX)
+    await invalidate(PREFIX)
     return workout
   }
 
@@ -36,7 +36,7 @@ export class WorkoutsService {
     if (!workout) {
       throw new WorkoutNotFound()
     }
-    await invalidate(CACHE_PREFIX)
+    await invalidate(PREFIX)
     return workout
   }
 
@@ -45,6 +45,6 @@ export class WorkoutsService {
     if (!deleted) {
       throw new WorkoutNotFound()
     }
-    await invalidate(CACHE_PREFIX)
+    await invalidate(PREFIX)
   }
 }

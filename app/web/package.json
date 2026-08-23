@@ -13,6 +13,8 @@
     "seed:make": "bunx knex seed:make --knexfile server/db/knexfile.ts -x ts",
     "test": "bun test --parallel=1",
     "test:watch": "bun test --parallel=1 --watch",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "bunx eslint . --fix",
@@ -43,6 +45,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
     "@types/bun": "latest",
     "@types/pg": "^8.21.0",
     "@types/react": "^19.2.18",

@@ -42,19 +42,20 @@ export class WorkoutScheduleService {
   }
 
   async update(id: string, input: UpdateWorkoutScheduleInput) {
+    let slot
     try {
-      const slot = await this.schedule.update(id, input)
-      if (!slot) {
-        throw new WorkoutScheduleNotFound()
-      }
-      await invalidate(PREFIX)
-      return slot
+      slot = await this.schedule.update(id, input)
     } catch (err) {
       if (isUniqueViolation(err)) {
         throw new ScheduleSlotTaken()
       }
       throw err
     }
+    if (!slot) {
+      throw new WorkoutScheduleNotFound()
+    }
+    await invalidate(PREFIX)
+    return slot
   }
 
   async remove(id: string) {

@@ -1,8 +1,7 @@
 import { EmailAlreadyTaken, UserNotFound } from '../errors'
 import type { UserModel } from '../models/user'
+import { isUniqueViolation } from './constants'
 import type { CreateUserInput, UpdateUserInput } from '@eazybox/shared'
-
-const UNIQUE_VIOLATION = '23505'
 
 export class UsersService {
   constructor(private readonly users: UserModel) {}
@@ -26,7 +25,7 @@ export class UsersService {
         password: await Bun.password.hash(input.password),
       })
     } catch (err) {
-      if ((err as { code?: string } | null)?.code === UNIQUE_VIOLATION) {
+      if (isUniqueViolation(err)) {
         throw new EmailAlreadyTaken()
       }
       throw err
@@ -34,7 +33,15 @@ export class UsersService {
   }
 
   async update(id: string, input: UpdateUserInput) {
-    const user = await this.users.update(id, input)
+    let user
+    try {
+      user = await this.users.update(id, input)
+    } catch (err) {
+      if (isUniqueViolation(err)) {
+        throw new EmailAlreadyTaken()
+      }
+      throw err
+    }
     if (!user) {
       throw new UserNotFound()
     }

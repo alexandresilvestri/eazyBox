@@ -11,17 +11,24 @@ From the repo root:
 | Command | Purpose |
 | --- | --- |
 | `make up` / `make down` | Postgres + Redis via docker compose |
-| `bun run dev` | Web app with HMR (`bun --hot server/server.ts`) |
-| `bun run typecheck` | `tsc --noEmit` across all workspaces |
+| `make install` | `bun install --frozen-lockfile` |
+| `make dev` | Web app with HMR (`bun --hot server/server.ts`) |
+| `make typecheck` | `tsc --noEmit` across all workspaces |
+| `make lint` / `make lint-fix` | ESLint over `app/web` |
+| `make format` / `make format-check` | Prettier over `app/web` |
+| `make verify` | The full gate: typecheck, then lint, then the Bun suite |
 | `make migrate` | Apply Knex migrations |
 | `make migrate-create <name>` | Scaffold a migration |
 | `make seed` | Run seeds |
-| `make test` | Run the Bun test suite |
-| `make test-e2e` | Run the Playwright E2E suite |
+| `make test` / `make test-watch` | Run the Bun test suite |
+| `make test-e2e` / `make test-e2e-ui` | Run the Playwright E2E suite |
 | `make pgcli` | Open a psql session |
-| `bun run --filter @eazybox/web tokens` | Regenerate `app/web/client/tokens.css` from `shared/design/tokens.ts` |
+| `make tokens` | Regenerate `app/web/client/tokens.css` from `shared/design/tokens.ts` |
+| `make admin` | Bootstrap the first admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD` |
+| `make mobile` | Expo dev server (`mobile-android`, `mobile-ios`, `mobile-web` target a platform) |
+| `make mobile-lint` / `make mobile-typecheck` | Quality checks for `app/mobile` |
 
-From `app/web`: `bun run lint`, `bun run lint:fix`, `bun run format`, `bun run typecheck`.
+Every target is a thin delegation to a workspace script, so the underlying commands still work directly — from `app/web`: `bun run lint`, `bun run lint:fix`, `bun run format`, `bun run typecheck`.
 
 Server tests are `bun test`; E2E is Playwright. There is no third runner. `app/web/bunfig.toml` preloads `server/tests/setup.ts`, which creates `eazybox_test`, migrates it, and truncates between tests. The suite shares one database, so it **must** run serially — `bun run test` passes `--parallel=1`. Bare `bun test` runs files in parallel workers and they will wipe each other's fixtures.
 

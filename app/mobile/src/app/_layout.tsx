@@ -1,18 +1,34 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
+import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { useColorScheme } from "react-native";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import AppTabs from "@/components/app-tabs";
+import { AuthProvider, useAuth } from "@/lib/auth";
+import { LoginScreen } from "@/screens/login-screen";
 
 SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+function Gate() {
+  const { user, loading } = useAuth();
+
+  if (loading) return null;
+  return user ? <AppTabs /> : <LoginScreen />;
+}
+
+export default function RootLayout() {
+  const [loaded, error] = useFonts({
+    "Anton-Regular": require("@/assets/fonts/Anton-Regular.ttf"),
+    "Inter-Regular": require("@/assets/fonts/Inter-Regular.ttf"),
+    "Inter-Bold": require("@/assets/fonts/Inter-Bold.ttf"),
+    "JetBrainsMono-Regular": require("@/assets/fonts/JetBrainsMono-Regular.ttf"),
+  });
+
+  if (!loaded && !error) return null;
+
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <AuthProvider>
       <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+      <Gate />
+    </AuthProvider>
   );
 }

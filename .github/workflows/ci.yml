@@ -7,6 +7,62 @@ on:
     branches: ["**"]
 
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: eazybox
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    env:
+      JWT_SECRET: ci-secret
+      REDIS_URL: redis://localhost:6379
+      DATABASE_TEST_URL: postgres://postgres@localhost:5432/eazybox_test
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: .tool-versions
+
+      - run: bun install --frozen-lockfile
+
+      - name: Typecheck all workspaces
+        run: bun run typecheck
+
+      - name: Lint
+        run: bun run lint
+        working-directory: app/web
+
+      - name: Lint mobile
+        run: bun run --filter @eazybox/mobile lint
+
+      - name: Server tests
+        run: bun run test
+        working-directory: app/web
+
   semgrep:
     if: github.event_name != 'push'
     uses: ./.github/workflows/semgrep.yml

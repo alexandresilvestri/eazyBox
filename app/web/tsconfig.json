@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["bun-types"],
     "paths": {
       "@/*": ["./client/*"],
@@ -8,5 +9,5 @@
       "react-dom": ["./node_modules/@types/react-dom"]
     }
   },
-  "include": ["client", "server"]
+  "include": ["client", "server", "scripts", "e2e", "playwright.config.ts"]
 }

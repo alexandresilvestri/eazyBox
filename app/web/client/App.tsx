@@ -1,160 +1,48 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Trash2 } from 'lucide-react'
-import type { User } from '@eazybox/shared'
+import { BrowserRouter, Route, Routes } from 'react-router'
+import { AuthProvider, useAuth } from '@/auth-context'
+import { ConsoleShell } from '@/components/layout/ConsoleShell'
+import { Entrar } from '@/pages/Entrar'
+import { Grade } from '@/pages/Grade'
+import { Membros } from '@/pages/Membros'
+import { Painel } from '@/pages/Painel'
+import { Programacao } from '@/pages/Programacao'
+import { Sessoes } from '@/pages/Sessoes'
 
-export default function App() {
-  const [users, setUsers] = useState<User[]>([])
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+function Gate() {
+  const { user, loading } = useAuth()
 
-  const loadUsers = useCallback(async () => {
-    try {
-      const res = await fetch('/api/users')
-      if (!res.ok) throw new Error('Falha ao carregar usuários')
-      setUsers(await res.json())
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    void (async () => {
-      await loadUsers()
-    })()
-  }, [loadUsers])
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setError(null)
-    try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email }),
-      })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data.error ?? 'Falha ao criar usuário')
-      }
-      setName('')
-      setEmail('')
-      await loadUsers()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido')
-    }
+  if (loading) {
+    return (
+      <main
+        className="flex min-h-dvh items-center justify-center"
+        data-testid="loading"
+      >
+        <p className="text-xs text-ink-2">Carregando...</p>
+      </main>
+    )
   }
 
-  async function handleDelete(id: number) {
-    setError(null)
-    try {
-      const res = await fetch(`/api/users/${id}`, { method: 'DELETE' })
-      if (!res.ok && res.status !== 204)
-        throw new Error('Falha ao remover usuário')
-      setUsers((prev) => prev.filter((u) => u.id !== id))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido')
-    }
-  }
+  if (!user) return <Entrar />
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 p-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">Usuários</h1>
-        <p className="text-sm text-muted-foreground">
-          Bun + TypeScript + Tailwind + shadcn/ui + PostgreSQL + Knex
-        </p>
-      </header>
+    <Routes>
+      <Route element={<ConsoleShell />}>
+        <Route index element={<Painel />} />
+        <Route path="programacao" element={<Programacao />} />
+        <Route path="grade" element={<Grade />} />
+        <Route path="sessoes" element={<Sessoes />} />
+        <Route path="membros" element={<Membros />} />
+      </Route>
+    </Routes>
+  )
+}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Novo usuário</CardTitle>
-          <CardDescription>
-            Cadastre um novo usuário no banco de dados
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="name">Nome</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ana Souza"
-                required
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="ana@example.com"
-                required
-              />
-            </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-          </CardContent>
-          <CardFooter>
-            <Button type="submit">Adicionar usuário</Button>
-          </CardFooter>
-        </form>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de usuários</CardTitle>
-          <CardDescription>
-            {users.length} usuário(s) cadastrado(s)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-2">
-          {loading && (
-            <p className="text-sm text-muted-foreground">Carregando...</p>
-          )}
-          {!loading && users.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              Nenhum usuário cadastrado ainda.
-            </p>
-          )}
-          {users.map((user) => (
-            <div
-              key={user.id}
-              className="flex items-center justify-between rounded-md border p-3"
-            >
-              <div>
-                <p className="font-medium">{user.name}</p>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => handleDelete(user.id)}
-                aria-label={`Remover ${user.name}`}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-    </main>
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Gate />
+      </AuthProvider>
+    </BrowserRouter>
   )
 }

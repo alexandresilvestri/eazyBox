@@ -36,7 +36,8 @@ services:
       target: dev
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgres://postgres@postgres:5432/eazybox
+      DATABASE_URL: postgres://app_user@postgres:5432/eazybox
+      DATABASE_OWNER_URL: postgres://postgres@postgres:5432/eazybox
       REDIS_URL: redis://redis:6379
       PORT: 3000
     ports:

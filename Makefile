@@ -1,4 +1,4 @@
-.PHONY: up down rebuild logs migrate migrate-create migrate-rollback seed seed-create pgcli test test-db-reset
+.PHONY: up down rebuild logs migrate migrate-create migrate-rollback seed seed-create pgcli test test-e2e test-db-reset
 
 up:
 	docker compose up -d
@@ -38,6 +38,9 @@ pgcli:
 
 test:
 	bun run --filter @eazybox/web test
+
+test-e2e:
+	bun run --filter @eazybox/web test:e2e
 
 test-db-reset:
 	docker compose exec -T postgres psql -U postgres -d postgres -c "drop database if exists eazybox_test with (force)"

@@ -1,48 +1,197 @@
 @import 'tailwindcss';
-@config '../tailwind.config.ts';
+@import './tokens.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./fonts/inter-latin-wght-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrains Mono Variable';
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url('./fonts/jetbrains-mono-latin-wght-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Anton';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/anton-latin-400-normal.woff2') format('woff2');
+}
+
+@theme {
+  --rail-width: 68px;
+  --rail-width-expanded: 232px;
+  --page-max-width: min(1320px, 100%);
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pop-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+
+@keyframes scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scrim-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@utility radix-pop {
+  &[data-state='open'] {
+    animation: pop-in 160ms var(--ease-swift);
+  }
+
+  &[data-state='closed'] {
+    animation: pop-out 120ms ease-in;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &[data-state] {
+      animation: none;
+    }
+  }
+}
+
+@utility scrim-fade {
+  &[data-state='open'] {
+    animation: scrim-in 160ms ease-out;
+  }
+
+  &[data-state='closed'] {
+    animation: scrim-out 120ms ease-in;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &[data-state] {
+      animation: none;
+    }
+  }
+}
+
+@utility eyebrow {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+@utility field-label {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label-tight);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+@utility board-body {
+  font-family: var(--font-mono);
+  font-size: var(--board-size);
+  line-height: var(--board-leading);
+  white-space: pre-line;
+  color: var(--ink-1);
+}
+
+@utility display-numeral {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: var(--tracking-display);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility field-fill {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--field-border);
+  background-color: var(--field-fill);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease;
+
+  &:hover:where(:not(:focus-within)) {
+    background-color: var(--field-fill-hover);
+  }
+
+  &[placeholder]:not(:placeholder-shown),
+  &[data-state='open'],
+  &[data-slot='select-trigger']:not([data-placeholder]) {
+    background-color: var(--field-fill-hover);
+    border-color: var(--accent-border);
+  }
+
+  &:focus-within {
+    background-color: var(--surface);
+    border-color: var(--accent-solid);
+    box-shadow: 0 0 0 2px var(--accent-fill);
+  }
+
+  &[aria-invalid='true'] {
+    border-color: var(--error);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+@utility hover-row {
+  transition: background-color 140ms ease;
+
+  &:hover {
+    background-color: var(--row-hover);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
 
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-  }
-
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-paper font-sans text-ink-1 antialiased;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: var(--tracking-body);
   }
 }

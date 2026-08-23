@@ -31,6 +31,17 @@ export default tseslint.config(
       ...reactHooks.configs.flat.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Literal[value=/text-\\[\\d/]',
+          message: 'Bracket font sizes are banned, use a scale rung',
+        },
+        {
+          selector: 'TemplateElement[value.raw=/text-\\[\\d/]',
+          message: 'Bracket font sizes are banned, use a scale rung',
+        },
+      ],
     },
   },
   {

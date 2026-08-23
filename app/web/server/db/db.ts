@@ -5,4 +5,9 @@ import { config as knexConfig } from './knex.config.js'
 const environment = process.env.NODE_ENV ?? 'development'
 const config = knexfile[environment]
 
-export const db = Knex({ ...config, ...knexConfig })
+const connection = process.env.DATABASE_URL
+if (!connection) {
+  throw new Error('DATABASE_URL is not set')
+}
+
+export const db = Knex({ ...config, ...knexConfig, connection })

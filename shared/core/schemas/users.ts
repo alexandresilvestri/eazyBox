@@ -7,9 +7,9 @@ export const createUserSchema = z.object({
   lastName: z.string().trim().min(1),
 });
 
-// TODO(human): define which fields a PATCH /api/users/:id may change
-export const updateUserSchema = z.object({});
+export const updateUserSchema = createUserSchema
+  .pick({ email: true, firstName: true, lastName: true })
+  .partial();
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
-

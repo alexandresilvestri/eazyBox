@@ -1,28 +1,66 @@
-.PHONY: up down rebuild logs migrate migrate-create migrate-rollback seed seed-create pgcli 
+.PHONY: up down rebuild logs install dev typecheck lint lint-fix format format-check verify test test-watch test-e2e test-e2e-ui test-db-reset migrate migrate-create migrate-rollback seed seed-create tokens admin pgcli mobile mobile-android mobile-ios mobile-web mobile-lint mobile-typecheck
+
+ARG_TARGETS := migrate-create seed-create
+ifneq (,$(filter $(ARG_TARGETS),$(MAKECMDGOALS)))
+  ARGS := $(filter-out $(ARG_TARGETS),$(MAKECMDGOALS))
+  $(eval $(ARGS):;@:)
+endif
 
 up:
 	docker compose up -d
 
 down:
 	docker compose down
-	
+
 rebuild:
 	docker compose down -v && docker compose up --build -d
 
 logs:
 	docker compose logs -f
 
+install:
+	bun install --frozen-lockfile
+
+dev:
+	bun run dev
+
+typecheck:
+	bun run typecheck
+
 lint:
-	bun run lint
+	bun run --filter @eazybox/web lint
+
+lint-fix:
+	bun run --filter @eazybox/web lint:fix
 
 format:
-	bun run format
+	bun run --filter @eazybox/web format
+
+format-check:
+	bun run --filter @eazybox/web format:check
+
+verify: typecheck lint test
+
+test:
+	bun run --filter @eazybox/web test
+
+test-watch:
+	bun run --filter @eazybox/web test:watch
+
+test-e2e:
+	bun run --filter @eazybox/web test:e2e
+
+test-e2e-ui:
+	bun run --filter @eazybox/web test:e2e:ui
+
+test-db-reset:
+	docker compose exec -T postgres psql -U postgres -d postgres -c "drop database if exists eazybox_test with (force)"
 
 migrate:
 	bun run --filter @eazybox/web migrate
 
 migrate-create:
-	bun run --filter @eazybox/web migrate:make
+	bun run --filter @eazybox/web migrate:make $(ARGS)
 
 migrate-rollback:
 	bun run --filter @eazybox/web migrate:rollback
@@ -31,8 +69,31 @@ seed:
 	bun run --filter @eazybox/web seed
 
 seed-create:
-	bun run --filter @eazybox/web seed:make
+	bun run --filter @eazybox/web seed:make $(ARGS)
+
+tokens:
+	bun run --filter @eazybox/web tokens
+
+admin:
+	bun run --filter @eazybox/web admin:create
 
 pgcli:
 	pgcli postgres://postgres@localhost:5432/eazybox
 
+mobile:
+	bun run mobile
+
+mobile-android:
+	bun run --filter @eazybox/mobile android
+
+mobile-ios:
+	bun run --filter @eazybox/mobile ios
+
+mobile-web:
+	bun run --filter @eazybox/mobile web
+
+mobile-lint:
+	bun run --filter @eazybox/mobile lint
+
+mobile-typecheck:
+	bun run --filter @eazybox/mobile typecheck

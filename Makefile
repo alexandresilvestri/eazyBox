@@ -1,6 +1,8 @@
-.PHONY: up down rebuild logs install dev typecheck lint lint-fix format format-check verify test test-watch test-e2e test-e2e-ui test-db-reset migrate migrate-create migrate-rollback seed seed-create tokens admin pgcli mobile mobile-android mobile-ios mobile-web mobile-lint mobile-typecheck
+.PHONY: up down rebuild logs install dev typecheck lint lint-fix format format-check verify test test-watch test-e2e test-e2e-ui test-db-reset migrate migrate-create migrate-rollback tokens admin seed pgcli mobile mobile-android mobile-ios mobile-web mobile-lint mobile-typecheck
 
-ARG_TARGETS := migrate-create seed-create
+LOAD_ENV := set -a; [ -f .env ] && . ./.env; set +a;
+
+ARG_TARGETS := migrate-create
 ifneq (,$(filter $(ARG_TARGETS),$(MAKECMDGOALS)))
   ARGS := $(filter-out $(ARG_TARGETS),$(MAKECMDGOALS))
   $(eval $(ARGS):;@:)
@@ -22,7 +24,7 @@ install:
 	bun install --frozen-lockfile
 
 dev:
-	bun run dev
+	$(LOAD_ENV) bun run dev
 
 typecheck:
 	bun run typecheck
@@ -57,25 +59,22 @@ test-db-reset:
 	docker compose exec -T postgres psql -U postgres -d postgres -c "drop database if exists eazybox_test with (force)"
 
 migrate:
-	bun run --filter @eazybox/web migrate
+	$(LOAD_ENV) bun run --filter @eazybox/web migrate
 
 migrate-create:
-	bun run --filter @eazybox/web migrate:make $(ARGS)
+	$(LOAD_ENV) bun run --filter @eazybox/web migrate:make $(ARGS)
 
 migrate-rollback:
-	bun run --filter @eazybox/web migrate:rollback
-
-seed:
-	bun run --filter @eazybox/web seed
-
-seed-create:
-	bun run --filter @eazybox/web seed:make $(ARGS)
+	$(LOAD_ENV) bun run --filter @eazybox/web migrate:rollback
 
 tokens:
 	bun run --filter @eazybox/web tokens
 
 admin:
-	bun run --filter @eazybox/web admin:create
+	$(LOAD_ENV) bun run --filter @eazybox/web admin:create
+
+seed:
+	$(LOAD_ENV) bun run --filter @eazybox/web db:seed
 
 pgcli:
 	pgcli postgres://postgres@localhost:5432/eazybox

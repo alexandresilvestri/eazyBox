@@ -19,14 +19,16 @@ From the repo root:
 | `make verify` | The full gate: typecheck, then lint, then the Bun suite |
 | `make migrate` | Apply Knex migrations |
 | `make migrate-create <name>` | Scaffold a migration |
-| `make seed` | Run seeds |
 | `make test` / `make test-watch` | Run the Bun test suite |
 | `make test-e2e` / `make test-e2e-ui` | Run the Playwright E2E suite |
 | `make pgcli` | Open a psql session |
 | `make tokens` | Regenerate `app/web/client/tokens.css` from `shared/design/tokens.ts` |
 | `make admin` | Bootstrap the first admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD` |
+| `make seed` | Wipe the dev database and refill it with fictional data |
 | `make mobile` | Expo dev server (`mobile-android`, `mobile-ios`, `mobile-web` target a platform) |
 | `make mobile-lint` / `make mobile-typecheck` | Quality checks for `app/mobile` |
+
+`bun run --filter` runs each script with cwd set to the workspace, and Bun only auto-loads `.env` from cwd — the root `.env` is invisible there. Makefile targets that need it (`dev`, `migrate*`, `admin`) source it through `$(LOAD_ENV)`. Test targets deliberately do not: `server/tests/helpers/env.ts` owns the test defaults, and exporting the dev `DATABASE_URL` into `bun test` points the suite at the dev database as owner, which makes RLS inert.
 
 Every target is a thin delegation to a workspace script, so the underlying commands still work directly — from `app/web`: `bun run lint`, `bun run lint:fix`, `bun run format`, `bun run typecheck`.
 
@@ -228,7 +230,7 @@ export type Services = ReturnType<typeof buildServices>
 
 Authorization is enforced twice: `requireAdmin()` / `requireStaff()` in `routes/` as the readable first line, and Postgres RLS as the backstop for any route someone forgets to guard.
 
-- The runtime connects as **`app_user`** (`DATABASE_URL`), a non-superuser that RLS applies to. Migrations, seeds and scripts connect as the owner (`DATABASE_OWNER_URL`) and bypass policies — that is deliberate and is why `make migrate` works.
+- The runtime connects as **`app_user`** (`DATABASE_URL`), a non-superuser that RLS applies to. Migrations and scripts connect as the owner (`DATABASE_OWNER_URL`) and bypass policies — that is deliberate and is why `make migrate` works.
 - `authenticate()` verifies the JWT (cookie for web, `Authorization: Bearer` for mobile), then `withRlsContext()` opens a transaction and sets `app.user_id` / `app.is_admin` / `app.is_coach` via `set_config(..., true)`. Both are applied once, by the `guarded` sub-app in `routes/index.ts` — registering them per path runs them twice, opens two nested transactions, and wedges the connection pool at `pool.max` concurrent requests.
 - **Transport is chosen by the route, never by a request header.** `/api/auth/*` is the cookie mount, `/api/mobile/auth/*` the bearer mount, each fixed by `withTransport()` at wiring time. Sniffing something like `X-Client` would let an XSS payload ask for the refresh token in a JSON body and defeat `httpOnly`.
 - A member reading someone else's row gets **404, not 403** — RLS makes the row invisible before authorization can speak. Do not "fix" this to 403; it would leak existence.
@@ -244,7 +246,7 @@ Authorization is enforced twice: `requireAdmin()` / `requireStaff()` in `routes/
 
 # Migrations run on Node, not Bun
 
-`bunx knex` shells out to Node, so **`Bun.*` APIs are unavailable inside migrations and seeds**. Anything needing `Bun.password` belongs in `server/scripts/` and runs with `bun`.
+`bunx knex` shells out to Node, so **`Bun.*` APIs are unavailable inside migrations**. Anything needing `Bun.password` belongs in `server/scripts/` and runs with `bun`.
 
 # Shared package
 

@@ -29,7 +29,7 @@
         "image": "latest"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://www.eazybox.com.br"
+        "EXPO_PUBLIC_API_URL": "https://eazybox.com.br"
       }
     },
     "production": {
@@ -42,7 +42,7 @@
         "image": "latest"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://www.eazybox.com.br"
+        "EXPO_PUBLIC_API_URL": "https://eazybox.com.br"
       }
     }
   },

@@ -80,16 +80,16 @@ pgcli:
 	pgcli postgres://postgres@localhost:5432/eazybox
 
 mobile:
-	bun run mobile
+	cd app/mobile && bunx expo start --lan
 
 mobile-android:
-	bun run --filter @eazybox/mobile android
+	cd app/mobile && bunx expo start --android
 
 mobile-ios:
-	bun run --filter @eazybox/mobile ios
+	cd app/mobile && bunx expo start --ios
 
 mobile-web:
-	bun run --filter @eazybox/mobile web
+	cd app/mobile && bunx expo start --web
 
 mobile-lint:
 	bun run --filter @eazybox/mobile lint

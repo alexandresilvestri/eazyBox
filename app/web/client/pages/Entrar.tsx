@@ -47,13 +47,13 @@ export default function Entrar() {
         <div className="max-w-xl">
           <p className="eyebrow">Painel de gestão</p>
           <h1 className="mt-3.5 font-display text-display-sm tracking-display lg:text-display">
-            App de check-in 
+            App de check-in
             <br />
             para box de crossfit
           </h1>
           <p className="mt-5 max-w-md text-lg text-ink-2">
-            Gerencie WODs, aulas, horários e alunos. O aluno faz
-            check-in pelo app. Fácil e prático, 
+            Gerencie WODs, aulas, horários e alunos. O aluno faz check-in pelo
+            app. Fácil e prático,
           </p>
         </div>
 

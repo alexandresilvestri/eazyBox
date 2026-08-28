@@ -94,7 +94,7 @@ export default function Dashboard() {
   return (
     <Page
       eyebrow={longDate(now)}
-      title="Hoje na box"
+      title="Hoje no box"
       actions={
         <Button onClick={() => setPublishing(true)}>
           Publicar WOD de amanhã

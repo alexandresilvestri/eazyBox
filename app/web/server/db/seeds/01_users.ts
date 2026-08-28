@@ -28,6 +28,8 @@ const FIRST_NAMES = [
   'Bianca',
   'Leandro',
   'Mariana',
+  'Renata',
+  'Vitor',
 ]
 
 const LAST_NAMES = [
@@ -56,12 +58,14 @@ const LAST_NAMES = [
   'Gomes',
   'Araujo',
   'Lima',
+  'Barros',
+  'Campos',
 ]
 
 const ADMIN_INDEX = 0
-const COACH_INDEXES = new Set([1, 2])
-const INACTIVE_INDEXES = new Set([20, 21])
-const DELETED_INDEX = 22
+const COACH_INDEXES = new Set([1, 2, 3])
+const INACTIVE_INDEXES = new Set([24, 25])
+const DELETED_INDEX = 26
 
 export async function seed(knex: Knex) {
   const password = await Bun.password.hash(SEED_PASSWORD)

@@ -40,6 +40,7 @@ services:
       DATABASE_OWNER_URL: postgres://postgres@postgres:5432/eazybox
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
       PORT: 3000
     ports:
       - "3000:3000"

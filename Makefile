@@ -1,4 +1,4 @@
-.PHONY: up down rebuild logs install dev typecheck lint lint-fix format format-check verify test test-watch test-e2e test-e2e-ui test-db-reset migrate migrate-create migrate-rollback tokens admin seed pgcli mobile mobile-android mobile-ios mobile-web mobile-lint mobile-typecheck
+.PHONY: up down rebuild logs install dev typecheck lint lint-fix format format-check verify test test-watch test-db-reset migrate migrate-create migrate-rollback admin seed pgcli
 
 LOAD_ENV := set -a; [ -f .env ] && . ./.env; set +a;
 
@@ -49,12 +49,6 @@ test:
 test-watch:
 	bun run --filter @eazybox/web test:watch
 
-test-e2e:
-	bun run --filter @eazybox/web test:e2e
-
-test-e2e-ui:
-	bun run --filter @eazybox/web test:e2e:ui
-
 test-db-reset:
 	docker compose exec -T postgres psql -U postgres -d postgres -c "drop database if exists eazybox_test with (force)"
 
@@ -67,9 +61,6 @@ migrate-create:
 migrate-rollback:
 	$(LOAD_ENV) bun run --filter @eazybox/web migrate:rollback
 
-tokens:
-	bun run --filter @eazybox/web tokens
-
 admin:
 	$(LOAD_ENV) bun run --filter @eazybox/web admin:create
 
@@ -78,21 +69,3 @@ seed:
 
 pgcli:
 	pgcli postgres://postgres@localhost:5432/eazybox
-
-mobile:
-	cd app/mobile && bunx expo start --lan
-
-mobile-android:
-	cd app/mobile && bunx expo start --android
-
-mobile-ios:
-	cd app/mobile && bunx expo start --ios
-
-mobile-web:
-	cd app/mobile && bunx expo start --web
-
-mobile-lint:
-	bun run --filter @eazybox/mobile lint
-
-mobile-typecheck:
-	bun run --filter @eazybox/mobile typecheck

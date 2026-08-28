@@ -9,7 +9,6 @@
   ],
   "scripts": {
     "dev": "bun run --filter @eazybox/web dev",
-    "mobile": "bun run --filter @eazybox/mobile start",
     "typecheck": "bun run --filter '*' typecheck"
   },
   "devDependencies": {

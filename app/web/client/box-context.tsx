@@ -17,6 +17,8 @@ type BoxData = {
   workouts: Workout[]
   checkins: Checkin[]
   users: User[]
+  loading: boolean
+  error: string | null
   reload: {
     all: Reload
     sessions: Reload
@@ -53,6 +55,13 @@ export function BoxProvider({ children }: { children: ReactNode }) {
       workouts: workouts.data,
       checkins: checkins.data,
       users: users.data,
+      loading: [sessions, schedule, workouts, checkins, users].some(
+        (resource) => resource.loading
+      ),
+      error:
+        [sessions, schedule, workouts, checkins, users].find(
+          (resource) => resource.error
+        )?.error ?? null,
       reload: {
         all: () =>
           Promise.all([

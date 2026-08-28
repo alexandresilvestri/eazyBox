@@ -34,7 +34,7 @@ export function BarChart({
             <span
               className={cn(
                 'w-full rounded-t-xs',
-                highlighted ? 'bg-highlight' : 'bg-ink-ghost'
+                highlighted ? 'bg-highlight' : 'bg-hairline-strong'
               )}
               style={{ height: `${Math.max(2, (bar.value / peak) * 100)}%` }}
             />

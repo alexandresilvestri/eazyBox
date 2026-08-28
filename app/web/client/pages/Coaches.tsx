@@ -25,6 +25,7 @@ export default function Coaches() {
   const { users, sessions, schedule, reload } = useBox()
   const [promoting, setPromoting] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const coaches = users.filter((user) => user.isCoach)
   const members = users.filter(
@@ -33,12 +34,15 @@ export default function Coaches() {
 
   async function setCoachFlag(user: User, isCoach: boolean) {
     setBusy(true)
+    setError(null)
     try {
       await apiFetch(`/users/${user.id}`, {
         method: 'PATCH',
         body: JSON.stringify({ isCoach }),
       })
       await reload.users()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar')
     } finally {
       setBusy(false)
     }
@@ -54,6 +58,8 @@ export default function Coaches() {
         </Button>
       }
     >
+      {error ? <p className="text-base text-accent-text">{error}</p> : null}
+
       <div className="grid grid-cols-3 gap-4">
         {coaches.map((coach) => {
           const weekly = schedule.filter((slot) => slot.coachId === coach.id)

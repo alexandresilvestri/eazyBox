@@ -33,6 +33,7 @@ export default function Wods() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [draft, setDraft] = useState<Draft>(draftOf(null))
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const today = useMemo(() => isoDate(new Date()), [])
   const lastUsed = useMemo(() => lastUsedByWorkout(sessions), [sessions])
@@ -47,14 +48,26 @@ export default function Wods() {
     workout.wod.toLowerCase().includes(term)
   )
 
+  const stored = draftOf(
+    workouts.find((workout) => workout.id === selectedId) ?? null
+  )
+  const dirty =
+    draft.warmUp !== stored.warmUp ||
+    draft.skill !== stored.skill ||
+    draft.wod !== stored.wod
+
   function select(workout: Workout) {
+    if (workout.id === selectedId) return
+    if (dirty && !confirm('Descartar as alterações não salvas?')) return
     setSelectedId(workout.id)
     setDraft(draftOf(workout))
+    setError(null)
   }
 
   async function save(id: string | null) {
     if (!draft.wod.trim()) return
     setSaving(true)
+    setError(null)
     try {
       const saved = id
         ? await apiFetch<Workout>(`/workouts/${id}`, {
@@ -67,6 +80,8 @@ export default function Wods() {
           })
       setSelectedId(saved.id)
       await reload.workouts()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar')
     } finally {
       setSaving(false)
     }
@@ -86,8 +101,12 @@ export default function Wods() {
           />
           <Button
             onClick={() => {
+              if (dirty && !confirm('Descartar as alterações não salvas?')) {
+                return
+              }
               setSelectedId(null)
               setDraft(draftOf(null))
+              setError(null)
             }}
           >
             Novo WOD
@@ -174,11 +193,13 @@ export default function Wods() {
             />
           </label>
 
+          {error ? <p className="text-base text-accent-text">{error}</p> : null}
+
           <div className="flex gap-2.5">
             <Button
               variant="outline"
               className="flex-1"
-              disabled={saving || !draft.wod.trim()}
+              disabled={saving || !selectedId || !draft.wod.trim()}
               onClick={() => void save(null)}
             >
               Duplicar

@@ -179,7 +179,7 @@ export default function Dashboard() {
             <span className="section-label">
               Check-ins por horário · {CHART_DAYS} dias
             </span>
-            <BarChart bars={slotBars} />
+            <BarChart bars={slotBars} withValues />
           </Panel>
 
           <Panel className="gap-3">

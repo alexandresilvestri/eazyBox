@@ -33,6 +33,7 @@ export default function App() {
             </Route>
             <Route path="check-ins" element={<Checkins />} />
             <Route path="ajustes" element={<Ajustes />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
       </BrowserRouter>

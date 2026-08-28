@@ -1,7 +1,12 @@
 import { Pressable, StyleSheet, Text } from "react-native";
-import type { ReactNode } from "react";
 
-import { colors, layout, radius, text } from "@/constants/theme";
+import {
+  colors,
+  layout,
+  MAX_FONT_SCALE,
+  radius,
+  text,
+} from "@/constants/theme";
 
 type Props = {
   label: string;
@@ -22,7 +27,13 @@ export function PrimaryButton({ label, onPress, disabled = false }: Props) {
         disabled && styles.disabled,
       ]}
     >
-      <Text style={[text.button, styles.primaryLabel]}>{label}</Text>
+      <Text
+        numberOfLines={1}
+        maxFontSizeMultiplier={MAX_FONT_SCALE}
+        style={[text.button, styles.primaryLabel]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -40,38 +51,22 @@ export function GhostButton({ label, onPress, disabled = false }: Props) {
         disabled && styles.disabled,
       ]}
     >
-      <Text style={[text.button, styles.ghostLabel]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-export function IconButton({
-  icon,
-  onPress,
-  outlined = false,
-}: {
-  icon: ReactNode;
-  onPress: () => void;
-  outlined?: boolean;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.icon,
-        outlined && styles.iconOutlined,
-        pressed && styles.pressed,
-      ]}
-    >
-      {icon}
+      <Text
+        numberOfLines={1}
+        maxFontSizeMultiplier={MAX_FONT_SCALE}
+        style={[text.button, styles.ghostLabel]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   base: {
-    height: layout.control,
+    minHeight: layout.control,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: radius.control,
     alignItems: "center",
     justifyContent: "center",
@@ -92,18 +87,6 @@ const styles = StyleSheet.create({
   },
   ghostLabel: {
     color: colors.ink,
-  },
-  icon: {
-    width: layout.tapTarget,
-    height: layout.tapTarget,
-    borderRadius: radius.control,
-    backgroundColor: colors.card,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  iconOutlined: {
-    borderWidth: 1,
-    borderColor: colors.line,
   },
   pressed: {
     opacity: 0.86,

@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: "row",
     alignItems: "flex-start",
-    height: layout.tabBar,
+    minHeight: layout.tabBar,
     paddingTop: 10,
     paddingHorizontal: 8,
     borderTopWidth: 1,

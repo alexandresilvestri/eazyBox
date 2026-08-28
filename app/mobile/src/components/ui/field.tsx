@@ -2,7 +2,14 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { TextInputProps } from "react-native";
 
-import { colors, fonts, layout, radius, text } from "@/constants/theme";
+import {
+  colors,
+  fonts,
+  layout,
+  MAX_FONT_SCALE,
+  radius,
+  text,
+} from "@/constants/theme";
 
 type Props = TextInputProps & {
   label: string;
@@ -20,21 +27,34 @@ export function Field({
 
   return (
     <View style={[styles.wrapper, focused && styles.focused]}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        {...input}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        placeholderTextColor={colors.ink3}
-        style={styles.input}
-      />
+      <View style={styles.stack}>
+        <Text
+          style={styles.label}
+          numberOfLines={1}
+          maxFontSizeMultiplier={MAX_FONT_SCALE}
+        >
+          {label}
+        </Text>
+        <TextInput
+          {...input}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholderTextColor={colors.ink3}
+          maxFontSizeMultiplier={MAX_FONT_SCALE}
+          style={styles.input}
+        />
+      </View>
       {onToggleReveal ? (
         <Pressable
           accessibilityRole="button"
           onPress={onToggleReveal}
           style={styles.reveal}
         >
-          <Text style={styles.revealLabel}>
+          <Text
+            style={styles.revealLabel}
+            numberOfLines={1}
+            maxFontSizeMultiplier={MAX_FONT_SCALE}
+          >
             {revealed ? "Ocultar" : "Mostrar"}
           </Text>
         </Pressable>
@@ -45,7 +65,7 @@ export function Field({
 
 const styles = StyleSheet.create({
   wrapper: {
-    height: layout.field,
+    minHeight: layout.field,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.card,
@@ -54,28 +74,31 @@ const styles = StyleSheet.create({
     borderRadius: radius.control,
     paddingLeft: 16,
     paddingRight: 8,
+    paddingVertical: 10,
   },
   focused: {
     borderColor: colors.accent,
   },
-  label: {
-    ...text.micro,
-    position: "absolute",
-    left: 16,
-    top: 11,
-    letterSpacing: 1.5,
-    textTransform: "uppercase",
-  },
-  input: {
+  stack: {
     flex: 1,
     minWidth: 0,
-    paddingTop: 16,
+  },
+  label: {
+    ...text.micro,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  input: {
+    padding: 0,
+    includeFontPadding: false,
     fontFamily: fonts.regular,
     fontSize: 16,
+    lineHeight: 22,
     color: colors.ink,
   },
   reveal: {
-    height: layout.tapTarget,
+    minHeight: layout.tapTarget,
     paddingHorizontal: 12,
     alignItems: "center",
     justifyContent: "center",

@@ -73,30 +73,6 @@ export const ProfileIcon = ({ color = colors.ink, size = 22 }: IconProps) => (
   </Svg>
 );
 
-export const ChevronLeft = ({ color = colors.ink, size = 18 }: IconProps) => (
-  <Svg width={size} height={size} viewBox="0 0 18 18" fill="none">
-    <Path
-      d="M11 3.5 5.5 9l5.5 5.5"
-      stroke={color}
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-export const ChevronRight = ({ color = colors.ink, size = 18 }: IconProps) => (
-  <Svg width={size} height={size} viewBox="0 0 18 18" fill="none">
-    <Path
-      d="M7 3.5 12.5 9 7 14.5"
-      stroke={color}
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
 export const ClockIcon = ({ color = colors.ink2, size = 24 }: IconProps) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Circle cx={12} cy={12} r={9} stroke={color} strokeWidth={1.8} />

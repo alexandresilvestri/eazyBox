@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { WEEK_DAY_LABEL, weekDayOf } from "@eazybox/shared";
 
-import { colors, fonts, radius } from "@/constants/theme";
+import { colors, fonts, MAX_FONT_SCALE, radius } from "@/constants/theme";
 
 export type WeekDayCell = { date: Date; trained: boolean };
 
@@ -28,6 +28,8 @@ export function WeekStrip({
             ]}
           >
             <Text
+              numberOfLines={1}
+              maxFontSizeMultiplier={MAX_FONT_SCALE}
               style={[
                 styles.day,
                 trained && styles.trainedDay,
@@ -37,6 +39,8 @@ export function WeekStrip({
               {WEEK_DAY_LABEL[weekDayOf(date)].toUpperCase()}
             </Text>
             <Text
+              numberOfLines={1}
+              maxFontSizeMultiplier={MAX_FONT_SCALE}
               style={[
                 styles.number,
                 trained && styles.trainedNumber,
@@ -55,11 +59,13 @@ export function WeekStrip({
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
-    gap: 8,
+    gap: 6,
   },
   cell: {
     flex: 1,
-    height: 46,
+    minHeight: 46,
+    paddingVertical: 8,
+    paddingHorizontal: 2,
     borderRadius: radius.control,
     backgroundColor: colors.card,
     alignItems: "center",
@@ -78,7 +84,7 @@ const styles = StyleSheet.create({
   day: {
     fontFamily: fonts.semibold,
     fontSize: 11,
-    letterSpacing: 1.1,
+    letterSpacing: 0.6,
     color: colors.ink3,
   },
   trainedDay: {

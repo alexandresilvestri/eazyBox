@@ -7,7 +7,7 @@ import {
   WEEK_DAY_INITIAL,
 } from "@eazybox/shared";
 
-import { colors, fonts, radius } from "@/constants/theme";
+import { colors, fonts, MAX_FONT_SCALE, radius } from "@/constants/theme";
 
 const WEEKS = 6;
 
@@ -37,7 +37,12 @@ export function MonthGrid({
     <View style={styles.grid}>
       <View style={styles.week}>
         {WEEK_DAYS.map((weekDay, index) => (
-          <Text key={`${weekDay}-${index}`} style={styles.head}>
+          <Text
+            key={`${weekDay}-${index}`}
+            numberOfLines={1}
+            maxFontSizeMultiplier={MAX_FONT_SCALE}
+            style={styles.head}
+          >
             {WEEK_DAY_INITIAL[weekDay]}
           </Text>
         ))}
@@ -62,6 +67,8 @@ export function MonthGrid({
                 ]}
               >
                 <Text
+                  numberOfLines={1}
+                  maxFontSizeMultiplier={MAX_FONT_SCALE}
                   style={[
                     styles.number,
                     outside && styles.outside,
@@ -99,7 +106,8 @@ const styles = StyleSheet.create({
   },
   cell: {
     flex: 1,
-    height: 46,
+    minHeight: 46,
+    paddingVertical: 6,
     borderRadius: radius.chip,
     alignItems: "center",
     justifyContent: "center",

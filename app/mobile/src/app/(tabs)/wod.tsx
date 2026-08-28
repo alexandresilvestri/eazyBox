@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import {
   activeCheckin,
+  addDays,
   dayAndMonth,
   dayDate,
   hourLabel,
@@ -15,17 +16,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { EmptyCard } from "@/components/ui/empty";
+import { Rail } from "@/components/ui/rail";
 import { Screen } from "@/components/ui/screen";
 import { Section, SectionLabel } from "@/components/ui/section";
-import { colors, radius, text } from "@/constants/theme";
+import { colors, MAX_FONT_SCALE, radius, text } from "@/constants/theme";
 import { useBox } from "@/lib/box";
 import { useWorkout } from "@/lib/use-workout";
 
-const shiftDay = (day: string, days: number) => {
-  const date = dayDate(day);
-  date.setDate(date.getDate() + days);
-  return isoDate(date);
-};
+const RAIL_BACK = 7;
+const RAIL_FORWARD = 13;
+const RAIL_ITEM = 60;
 
 const dayLabel = (day: string, todayKey: string) => {
   const date = dayDate(day);
@@ -36,10 +36,15 @@ const dayLabel = (day: string, todayKey: string) => {
 export default function WodScreen() {
   const { sessions, checkins } = useBox();
   const todayKey = useMemo(() => isoDate(new Date()), []);
-  const [day, setDay] = useState(todayKey);
+  const [dayIndex, setDayIndex] = useState(RAIL_BACK);
 
-  const previous = shiftDay(day, -1);
-  const next = shiftDay(day, 1);
+  const railDays = useMemo(() => {
+    const first = addDays(dayDate(todayKey), -RAIL_BACK);
+    return Array.from({ length: RAIL_BACK + RAIL_FORWARD + 1 }, (_, index) =>
+      addDays(first, index),
+    );
+  }, [todayKey]);
+  const day = isoDate(railDays[dayIndex]);
   const daySessions = sessionsOn(sessions, day);
   const workout = useWorkout(daySessions[0]?.workoutId);
   const wod = workout ? parseWod(workout.wod) : null;
@@ -49,19 +54,45 @@ export default function WodScreen() {
 
   return (
     <Screen gap={20}>
-      <View style={styles.pager}>
-        <Pressable style={styles.step} onPress={() => setDay(previous)}>
-          <Text style={styles.stepLabel}>← {dayDate(previous).getDate()}</Text>
-        </Pressable>
-        <View style={styles.current}>
-          <Text style={styles.currentLabel}>{dayLabel(day, todayKey)}</Text>
-        </View>
-        <Pressable style={styles.step} onPress={() => setDay(next)}>
-          <Text style={styles.stepLabel}>{dayDate(next).getDate()} →</Text>
-        </Pressable>
-      </View>
+      <Rail activeIndex={dayIndex} itemWidth={RAIL_ITEM}>
+        {railDays.map((date, index) => {
+          const isActive = index === dayIndex;
+          const isToday = index === RAIL_BACK;
+          return (
+            <Pressable
+              key={index}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              onPress={() => setDayIndex(index)}
+              style={[
+                styles.railDay,
+                isToday && !isActive && styles.railToday,
+                isActive && styles.railActive,
+              ]}
+            >
+              <Text
+                numberOfLines={1}
+                maxFontSizeMultiplier={MAX_FONT_SCALE}
+                style={[styles.railWeekDay, isActive && styles.railActiveText]}
+              >
+                {WEEK_DAY_LABEL[weekDayOf(date)].toUpperCase()}
+              </Text>
+              <Text
+                numberOfLines={1}
+                maxFontSizeMultiplier={MAX_FONT_SCALE}
+                style={[styles.railNumber, isActive && styles.railActiveText]}
+              >
+                {date.getDate()}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </Rail>
 
-      <Text style={text.heading}>{wod?.name ?? "Sem treino"}</Text>
+      <View style={styles.dayHead}>
+        <Text style={text.label}>{dayLabel(day, todayKey)}</Text>
+        <Text style={text.heading}>{wod?.name ?? "Sem treino"}</Text>
+      </View>
 
       {workout && wod ? (
         <View style={styles.blocks}>
@@ -114,6 +145,8 @@ export default function WodScreen() {
                   style={[styles.chip, isMine && styles.chipMine]}
                 >
                   <Text
+                    numberOfLines={1}
+                    maxFontSizeMultiplier={MAX_FONT_SCALE}
                     style={[styles.chipLabel, isMine && styles.chipMineLabel]}
                   >
                     {hourLabel(session.time)}
@@ -130,35 +163,37 @@ export default function WodScreen() {
 }
 
 const styles = StyleSheet.create({
-  pager: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  step: {
-    height: 36,
-    paddingHorizontal: 12,
-    borderRadius: radius.pill,
+  railDay: {
+    width: RAIL_ITEM,
+    minHeight: 62,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: radius.control,
     backgroundColor: colors.card,
     alignItems: "center",
     justifyContent: "center",
+    gap: 3,
   },
-  stepLabel: {
-    ...text.meta,
-    fontSize: 13,
+  railToday: {
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
   },
-  current: {
-    height: 36,
-    paddingHorizontal: 14,
-    borderRadius: radius.pill,
+  railActive: {
     backgroundColor: colors.ink,
-    alignItems: "center",
-    justifyContent: "center",
   },
-  currentLabel: {
+  railWeekDay: {
+    ...text.micro,
+    letterSpacing: 0.6,
+  },
+  railNumber: {
     ...text.bodyStrong,
-    fontSize: 13,
+    fontSize: 17,
+  },
+  railActiveText: {
     color: colors.surface,
+  },
+  dayHead: {
+    gap: 6,
   },
   blocks: {
     gap: 14,
@@ -193,7 +228,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   chip: {
-    height: 38,
+    minHeight: 38,
+    paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: radius.chip,
     backgroundColor: colors.card,

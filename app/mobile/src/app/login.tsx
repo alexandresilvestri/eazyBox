@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { PrimaryButton } from "@/components/ui/buttons";
 import { Field } from "@/components/ui/field";
-import { colors, fonts, layout, text } from "@/constants/theme";
+import { colors, layout, text } from "@/constants/theme";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
@@ -93,12 +93,9 @@ export default function LoginScreen() {
                 submitting || email.length === 0 || password.length === 0
               }
             />
-            <View style={styles.footer}>
-              <Text style={styles.footerNote}>
-                Sua conta é criada pela box.
-              </Text>
-              <Text style={styles.footerLink}>Esqueci a senha</Text>
-            </View>
+            <Text style={styles.footerNote}>
+              Sua conta é criada pela box. Esqueceu a senha? Fale com seu coach.
+            </Text>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -153,21 +150,8 @@ const styles = StyleSheet.create({
   actions: {
     gap: 18,
   },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
   footerNote: {
     ...text.meta,
     color: colors.ink3,
-  },
-  footerLink: {
-    ...text.meta,
-    fontFamily: fonts.semibold,
-    color: colors.ink,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.lineStrong,
   },
 });

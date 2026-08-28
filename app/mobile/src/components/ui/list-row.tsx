@@ -1,7 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import type { ReactNode } from "react";
 
-import { ChevronRight } from "@/components/ui/icons";
 import { colors, text } from "@/constants/theme";
 
 export function ListRow({
@@ -24,7 +23,7 @@ export function ListRow({
         <Text style={text.body}>{label}</Text>
         {detail ? <Text style={styles.detail}>{detail}</Text> : null}
       </View>
-      {right ?? <ChevronRight color={colors.ink3} size={16} />}
+      {right}
     </View>
   );
 }

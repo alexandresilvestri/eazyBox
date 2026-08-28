@@ -1,5 +1,7 @@
 import type { TextStyle } from "react-native";
 
+export const MAX_FONT_SCALE = 1.25;
+
 export const colors = {
   surface: "#111112",
   card: "#2B2B2B",

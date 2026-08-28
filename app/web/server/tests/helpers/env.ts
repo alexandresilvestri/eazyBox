@@ -4,6 +4,7 @@ process.env.DATABASE_TEST_URL ??=
 process.env.DATABASE_URL ??= 'postgres://app_user@localhost:5432/eazybox_test'
 process.env.REDIS_URL ??= 'redis://localhost:6379/1'
 process.env.JWT_SECRET ??= 'test-secret'
+process.env.CORS_ORIGINS ??= 'http://localhost:8081'
 
 export const OWNER_ADMIN_URL =
   process.env.DATABASE_TEST_ADMIN_URL ??

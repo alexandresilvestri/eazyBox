@@ -4,6 +4,3 @@
 .env
 Dockerfile
 compose.yml
-app/mobile
-!app/mobile/package.json
-.expo

@@ -1,8 +1,8 @@
 # eazybox
 
-Bun monorepo. Workspaces: `app/web` (Hono API + React 19 client), `app/mobile` (Expo), `shared` (`@eazybox/shared`, cross-platform types and Zod schemas).
+Bun monorepo, API only. Workspaces: `app/web` (Hono API), `shared` (`@eazybox/shared`, types and Zod schemas).
 
-Bun only — no Node, no Vite, no webpack. **One carve-out:** Playwright (`@playwright/test`, `@playwright/mcp`) runs on Node. It is dev-only, never enters the server or client bundle, and is the sanctioned exception — do not remove it on sight. The web client is bundled by Bun's native HTML import (`app/web/server/server.ts` imports `../client/index.html` directly).
+Bun only — no Node, no Vite, no webpack, no browser bundle. The server serves JSON under `/api` and nothing else; any other path gets Hono's 404.
 
 ## Commands
 
@@ -12,7 +12,7 @@ From the repo root:
 | --- | --- |
 | `make up` / `make down` | Postgres + Redis via docker compose |
 | `make install` | `bun install --frozen-lockfile` |
-| `make dev` | Web app with HMR (`bun --hot server/server.ts`) |
+| `make dev` | API with hot reload (`bun --hot server/server.ts`) |
 | `make typecheck` | `tsc --noEmit` across all workspaces |
 | `make lint` / `make lint-fix` | ESLint over `app/web` |
 | `make format` / `make format-check` | Prettier over `app/web` |
@@ -20,23 +20,17 @@ From the repo root:
 | `make migrate` | Apply Knex migrations |
 | `make migrate-create <name>` | Scaffold a migration |
 | `make test` / `make test-watch` | Run the Bun test suite |
-| `make test-e2e` / `make test-e2e-ui` | Run the Playwright E2E suite |
 | `make pgcli` | Open a psql session |
-| `make tokens` | Regenerate `app/web/client/tokens.css` from `shared/design/tokens.ts` |
 | `make admin` | Bootstrap the first admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD` |
 | `make seed` | Wipe the dev database and refill it with fictional data |
-| `make mobile` | Expo dev server (`mobile-android`, `mobile-ios`, `mobile-web` target a platform) |
-| `make mobile-lint` / `make mobile-typecheck` | Quality checks for `app/mobile` |
 
 `bun run --filter` runs each script with cwd set to the workspace, and Bun only auto-loads `.env` from cwd — the root `.env` is invisible there. Makefile targets that need it (`dev`, `migrate*`, `admin`) source it through `$(LOAD_ENV)`. Test targets deliberately do not: `server/tests/helpers/env.ts` owns the test defaults, and exporting the dev `DATABASE_URL` into `bun test` points the suite at the dev database as owner, which makes RLS inert.
 
 Every target is a thin delegation to a workspace script, so the underlying commands still work directly — from `app/web`: `bun run lint`, `bun run lint:fix`, `bun run format`, `bun run typecheck`.
 
-Server tests are `bun test`; E2E is Playwright. There is no third runner. `app/web/bunfig.toml` preloads `server/tests/setup.ts`, which creates `eazybox_test`, migrates it, and truncates between tests. The suite shares one database, so it **must** run serially — `bun run test` passes `--parallel=1`. Bare `bun test` runs files in parallel workers and they will wipe each other's fixtures.
+Tests are `bun test`. There is no second runner. `app/web/bunfig.toml` preloads `server/tests/setup.ts`, which creates `eazybox_test`, migrates it, and truncates between tests. The suite shares one database, so it **must** run serially — `bun run test` passes `--parallel=1`. Bare `bun test` runs files in parallel workers and they will wipe each other's fixtures.
 
-`bunfig.toml` sets `[test] root = "./server"`. Without it `bun test` also matches `e2e/*.spec.ts` and tries to run Playwright specs under Bun.
-
-E2E is `make test-e2e` (Playwright, `app/web/e2e/`). It owns a **third** database, `eazybox_e2e`, on port 3100 — never `eazybox_test`, which `bun test` truncates between tests. `e2e/global-setup.ts` runs under Node, so it shells out to `server/scripts/create-admin.ts` under `bun` rather than hashing passwords itself.
+`bunfig.toml` sets `[test] root = "./server"`. Every test currently lives under `server/tests/`, so it changes nothing today — it is there so a stray spec added elsewhere in the workspace never joins the suite silently. `preload` resolves relative to `bunfig.toml`, not to `root`.
 
 `bun run --filter @eazybox/web admin:create` bootstraps the first admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 
@@ -46,12 +40,13 @@ E2E is `make test-e2e` (Playwright, `app/web/e2e/`). It owns a **third** databas
 
 # Server architecture — app/web
 
-Applies to `app/web/server/**` only. Not `app/mobile` (see `app/mobile/CLAUDE.md`), not `app/web/client`.
+Applies to `app/web/server/**`.
 
 Each layer imports only the layer directly below it, through that layer's `index.ts`.
 
 ```
-server.ts             serve() only, no side-effect-free imports
+server.ts             serve() only; ./sentry imported first so init runs
+                      before anything it instruments loads
   └─> app.ts          the Hono instance (importable by tests)
        └─> routes/         Hono wiring, export default
             └─> controllers/    functions, HTTP boundary
@@ -231,8 +226,8 @@ export type Services = ReturnType<typeof buildServices>
 Authorization is enforced twice: `requireAdmin()` / `requireStaff()` in `routes/` as the readable first line, and Postgres RLS as the backstop for any route someone forgets to guard.
 
 - The runtime connects as **`app_user`** (`DATABASE_URL`), a non-superuser that RLS applies to. Migrations and scripts connect as the owner (`DATABASE_OWNER_URL`) and bypass policies — that is deliberate and is why `make migrate` works.
-- `authenticate()` verifies the JWT (cookie for web, `Authorization: Bearer` for mobile), then `withRlsContext()` opens a transaction and sets `app.user_id` / `app.is_admin` / `app.is_coach` via `set_config(..., true)`. Both are applied once, by the `guarded` sub-app in `routes/index.ts` — registering them per path runs them twice, opens two nested transactions, and wedges the connection pool at `pool.max` concurrent requests.
-- **Transport is chosen by the route, never by a request header.** `/api/auth/*` is the cookie mount, `/api/mobile/auth/*` the bearer mount, each fixed by `withTransport()` at wiring time. Sniffing something like `X-Client` would let an XSS payload ask for the refresh token in a JSON body and defeat `httpOnly`.
+- `authenticate()` verifies the JWT (from the `session` cookie on the cookie mount, from `Authorization: Bearer` on the bearer mount), then `withRlsContext()` opens a transaction and sets `app.user_id` / `app.is_admin` / `app.is_coach` via `set_config(..., true)`. Both are applied once, by the `guarded` sub-app in `routes/index.ts` — registering them per path runs them twice, opens two nested transactions, and wedges the connection pool at `pool.max` concurrent requests.
+- **Transport is chosen by the route, never by a request header.** `/api/auth/*` is the cookie mount, `/api/mobile/auth/*` the bearer mount, each fixed by `withTransport()` at wiring time. `Transport` in `context.ts` is `'cookie' | 'token'` — named by mechanism, not by client. The `/mobile` path segment is a legacy name kept for already-shipped native clients; any bearer client uses it. Sniffing something like `X-Client` would let an XSS payload ask for the refresh token in a JSON body and defeat `httpOnly`.
 - A member reading someone else's row gets **404, not 403** — RLS makes the row invisible before authorization can speak. Do not "fix" this to 403; it would leak existence.
 - **Never put `deleted_at is null` in a SELECT policy.** Postgres applies SELECT policies to the *new* row of an UPDATE, so a soft delete would make the row invisible to the statement writing it and fail. Soft-delete filtering lives in `models/`.
 - **Privilege is server-asserted, by decision.** `app.is_admin` / `app.is_coach` are set by `withRlsContext()` from verified JWT claims, so RLS enforces *identity* independently but takes *privilege* on trust. This is deliberate — deriving the flags from `users` in a `SECURITY DEFINER` helper was considered and declined. Do not "fix" it without revisiting the tradeoff below.
@@ -260,14 +255,6 @@ Gotcha: `updateUserSchema` is `z.object({})`, so `PATCH /api/users/:id` strips e
 
 ---
 
-# Design system
-
-`DESIGN.md` is the visual system for both clients. `shared/design/tokens.ts` is the single source of truth for colour, type, radius and motion: the web generates `app/web/client/tokens.css` from it (`bun run tokens`, output committed) and the mobile app imports `design.theme(scheme)` into `StyleSheet.create`. No component declares a hex.
-
-Web is Tailwind v4 CSS-first — there is no `tailwind.config.*`. Do not add one.
-
----
-
 # Style
 
 - Prettier (`app/web`): no semicolons, single quotes, 2-space indent, `trailingComma: es5`.
@@ -276,7 +263,6 @@ Web is Tailwind v4 CSS-first — there is no `tailwind.config.*`. Do not add one
 - No comments. Extract a named function or constant instead of explaining a block.
 - English identifiers, Portuguese user-facing API messages.
 - `window`, `document`, `localStorage` are ESLint errors under `server/**`.
-- The `@/*` alias maps to `client/*` only. Server imports are relative.
 
 ---
 
@@ -296,4 +282,3 @@ Using `posts` as the example, in order:
 10. `server/routes/index.ts` — add `['/posts', postsRoutes]` to the **`PROTECTED` array**. Do not call `routes.route()` directly: only the array is mounted inside the `guarded` sub-app that applies `authenticate()` + `withRlsContext()`, so a direct registration ships an unauthenticated endpoint with no `services` on the context. `integration/routing.test.ts` asserts every entry rejects an untokened request.
 11. If the resource is cached, add its prefix to `CACHE_PREFIX` in `services/constants.ts`
 12. `bun run typecheck && bun run lint && bun run test`
-

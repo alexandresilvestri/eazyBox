@@ -1,9 +1,11 @@
 import type { Context } from 'hono'
 import {
+  addAttendeeSchema,
   createWorkoutSessionSchema,
   updateWorkoutSessionSchema,
 } from '@eazybox/shared'
 import {
+  AlreadyCheckedIn,
   SessionAlreadyScheduled,
   WorkoutNotFound,
   WorkoutScheduleNotFound,
@@ -25,6 +27,45 @@ export const findById = async (c: Context<AppEnv, '/:id'>) => {
   } catch (err) {
     if (err instanceof WorkoutSessionNotFound) {
       return c.json({ error: NOT_FOUND }, 404)
+    }
+    throw err
+  }
+}
+
+export const attendees = async (c: Context<AppEnv, '/:id/attendees'>) => {
+  try {
+    return c.json(
+      await c.get('services').workoutSessions.attendees(c.req.param('id'))
+    )
+  } catch (err) {
+    if (err instanceof WorkoutSessionNotFound) {
+      return c.json({ error: NOT_FOUND }, 404)
+    }
+    throw err
+  }
+}
+
+export const addAttendee = async (c: Context<AppEnv, '/:id/attendees'>) => {
+  const parsed = addAttendeeSchema.safeParse(
+    await c.req.json().catch(() => null)
+  )
+  if (!parsed.success) {
+    return c.json({ error: INVALID_PAYLOAD, issues: parsed.error.issues }, 400)
+  }
+
+  try {
+    return c.json(
+      await c.get('services').checkins.create(parsed.data.userId, {
+        workoutSessionId: c.req.param('id'),
+      }),
+      201
+    )
+  } catch (err) {
+    if (err instanceof WorkoutSessionNotFound) {
+      return c.json({ error: NOT_FOUND }, 404)
+    }
+    if (err instanceof AlreadyCheckedIn) {
+      return c.json({ error: 'Aluno já confirmado nessa aula' }, 409)
     }
     throw err
   }

@@ -7,6 +7,12 @@ export const workoutSessionsRoutes = new Hono<AppEnv>()
 
 workoutSessionsRoutes.get('/', workoutSessionsController.list)
 workoutSessionsRoutes.get('/:id', workoutSessionsController.findById)
+workoutSessionsRoutes.get('/:id/attendees', workoutSessionsController.attendees)
+workoutSessionsRoutes.post(
+  '/:id/attendees',
+  requireStaff(),
+  workoutSessionsController.addAttendee
+)
 workoutSessionsRoutes.post(
   '/',
   requireStaff(),

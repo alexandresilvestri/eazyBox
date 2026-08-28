@@ -107,3 +107,34 @@ describe('write access', () => {
     expect(again.status).toBe(201)
   })
 })
+
+describe('capacity and coach', () => {
+  test('a slot defaults to 20 vagas and no coach', async () => {
+    const member = await createUser()
+    await createSlot()
+    const res = await api('GET', '/workout-schedule', {
+      headers: await bearer(member),
+    })
+    expect(res.body[0].capacity).toBe(20)
+    expect(res.body[0].coachId).toBeNull()
+  })
+
+  test('an admin sets the coach and the capacity of a slot', async () => {
+    const admin = await createUser({ isAdmin: true })
+    const coach = await createUser({ isCoach: true })
+    const created = await api('POST', '/workout-schedule', {
+      headers: await bearer(admin),
+      body: { ...payload, capacity: 24, coachId: coach.id },
+    })
+    expect(created.status).toBe(201)
+    expect(created.body.capacity).toBe(24)
+
+    const res = await api('PATCH', `/workout-schedule/${created.body.id}`, {
+      headers: await bearer(admin),
+      body: { coachId: null, capacity: 16 },
+    })
+    expect(res.status).toBe(200)
+    expect(res.body.coachId).toBeNull()
+    expect(res.body.capacity).toBe(16)
+  })
+})

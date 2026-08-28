@@ -3,7 +3,8 @@ import {
   CheckinNotFound,
   WorkoutSessionNotFound,
 } from '../errors'
-import { isUniqueViolation } from './constants'
+import { invalidate } from '../redis'
+import { CACHE_PREFIX, isUniqueViolation } from './constants'
 import type { CheckinModel } from '../models/checkin'
 import type { WorkoutSessionModel } from '../models/workout-session'
 import type { CreateCheckinInput } from '@eazybox/shared'
@@ -25,7 +26,9 @@ export class CheckinsService {
     }
 
     try {
-      return await this.checkins.insert({ userId, workoutSessionId })
+      const checkin = await this.checkins.insert({ userId, workoutSessionId })
+      await invalidate(CACHE_PREFIX.workoutSessions)
+      return checkin
     } catch (err) {
       if (isUniqueViolation(err)) {
         throw new AlreadyCheckedIn()
@@ -39,6 +42,7 @@ export class CheckinsService {
     if (!checkin) {
       throw new CheckinNotFound()
     }
+    await invalidate(CACHE_PREFIX.workoutSessions)
     return checkin
   }
 }

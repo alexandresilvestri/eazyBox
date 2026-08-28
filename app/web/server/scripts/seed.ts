@@ -15,7 +15,7 @@ if (environment === 'production') {
 const owner = Knex({ ...knexfile[environment], ...knexConfig })
 
 await owner.raw(
-  'truncate checkins, workout_sessions, workout_schedule, workouts, users restart identity cascade'
+  'truncate announcements, checkins, workout_sessions, workout_schedule, workouts, users restart identity cascade'
 )
 
 await owner.seed.run({

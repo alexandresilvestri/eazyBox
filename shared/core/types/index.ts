@@ -35,6 +35,8 @@ export type WorkoutSchedule = {
   id: string;
   weekDay: WeekDay;
   time: string;
+  capacity: number;
+  coachId: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -46,8 +48,29 @@ export type WorkoutSession = {
   weekDay: WeekDay;
   time: string;
   sessionDate: string;
+  capacity: number;
+  coachId: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type SessionCoach = {
+  id: string;
+  firstName: string;
+  lastName: string;
+};
+
+export type WorkoutSessionWithStats = WorkoutSession & {
+  occupied: number;
+  coach: SessionCoach | null;
+};
+
+export type SessionAttendee = {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  isCoach: boolean;
+  checkedInAt: string;
 };
 
 export type Checkin = {
@@ -56,4 +79,12 @@ export type Checkin = {
   workoutSessionId: string;
   undone: boolean;
   createdAt: string;
+};
+
+export type Announcement = {
+  id: string;
+  body: string;
+  authorId: string | null;
+  createdAt: string;
+  updatedAt: string;
 };

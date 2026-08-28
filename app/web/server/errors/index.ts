@@ -45,3 +45,11 @@ export class ScheduleSlotTaken extends Error {
 export class SessionAlreadyScheduled extends Error {
   override name = 'SessionAlreadyScheduled'
 }
+
+export class AnnouncementNotFound extends Error {
+  override name = 'AnnouncementNotFound'
+}
+
+export class FlagChangeForbidden extends Error {
+  override name = 'FlagChangeForbidden'
+}

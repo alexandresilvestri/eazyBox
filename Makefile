@@ -1,4 +1,4 @@
-.PHONY: up down rebuild logs install dev typecheck lint lint-fix format format-check verify test test-watch test-db-reset migrate migrate-create migrate-rollback admin seed pgcli
+.PHONY: up down rebuild logs install dev typecheck lint lint-fix format format-check verify test test-watch test-db-reset migrate migrate-create migrate-rollback admin seed pgcli mobile mobile-android mobile-ios mobile-web mobile-lint mobile-typecheck
 
 LOAD_ENV := set -a; [ -f .env ] && . ./.env; set +a;
 
@@ -69,3 +69,21 @@ seed:
 
 pgcli:
 	pgcli postgres://postgres@localhost:5432/eazybox
+
+mobile:
+	cd app/mobile && bunx expo start --lan
+
+mobile-android:
+	cd app/mobile && bunx expo start --android
+
+mobile-ios:
+	cd app/mobile && bunx expo start --ios
+
+mobile-web:
+	cd app/mobile && bunx expo start --web
+
+mobile-lint:
+	bun run --filter @eazybox/mobile lint
+
+mobile-typecheck:
+	bun run --filter @eazybox/mobile typecheck

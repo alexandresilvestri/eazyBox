@@ -1,0 +1,78 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+@import '@fontsource/archivo/latin-400.css';
+@import '@fontsource/archivo/latin-600.css';
+@import '@fontsource/archivo/latin-700.css';
+@import '@fontsource/archivo-black/latin-400.css';
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-canvas);
+    color: var(--color-ink-1);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--color-accent-solid);
+    color: var(--color-accent-ink);
+  }
+}
+
+@utility field-fill {
+  background: var(--color-panel);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-md);
+
+  &:focus,
+  &:focus-within {
+    border-color: var(--color-accent-solid);
+  }
+}
+
+@utility field-label {
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+@utility eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+@utility section-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-ink-2);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@utility fade-pop {
+  animation: fade-in 0.14s ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}

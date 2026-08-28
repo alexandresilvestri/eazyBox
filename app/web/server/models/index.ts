@@ -1,5 +1,6 @@
 import type { Knex } from 'knex'
 import { db } from '../db/db'
+import { AnnouncementModel } from './announcement'
 import { AuthModel } from './auth'
 import { CheckinModel } from './checkin'
 import { UserModel } from './user'
@@ -19,6 +20,7 @@ export const buildModels = (trx: Knex.Transaction) => ({
   workoutSchedule: new WorkoutScheduleModel(trx),
   workoutSessions: new WorkoutSessionModel(trx),
   checkins: new CheckinModel(trx),
+  announcements: new AnnouncementModel(trx),
 })
 
 export type Models = ReturnType<typeof buildModels>

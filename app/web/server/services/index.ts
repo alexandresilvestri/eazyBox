@@ -1,5 +1,6 @@
 import { authModel } from '../models'
 import type { Models } from '../models'
+import { AnnouncementsService } from './announcements'
 import { AuthService } from './auth'
 import { CheckinsService } from './checkins'
 import { UsersService } from './users'
@@ -19,6 +20,7 @@ export const buildServices = (models: Models) => ({
     models.workouts
   ),
   checkins: new CheckinsService(models.checkins, models.workoutSessions),
+  announcements: new AnnouncementsService(models.announcements),
 })
 
 export type Services = ReturnType<typeof buildServices>

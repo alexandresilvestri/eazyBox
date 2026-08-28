@@ -15,6 +15,7 @@ export function SegmentedTabs<T extends string>({
         <button
           key={option.value}
           type="button"
+          aria-pressed={option.value === value}
           onClick={() => onChange(option.value)}
           className={cn(
             'grid h-full place-items-center rounded-sm px-3.5 text-sm font-semibold transition-colors',

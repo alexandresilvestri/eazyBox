@@ -5,7 +5,7 @@
 
   --color-ink-1: #ededea;
   --color-ink-2: rgba(237, 237, 234, 0.62);
-  --color-ink-3: rgba(237, 237, 234, 0.4);
+  --color-ink-3: rgba(237, 237, 234, 0.55);
   --color-ink-ghost: rgba(237, 237, 234, 0.14);
 
   --color-hairline: rgba(237, 237, 234, 0.14);
@@ -55,4 +55,6 @@
   --text-heading--line-height: 1.05;
   --text-display: 56px;
   --text-display--line-height: 0.96;
+  --text-display-sm: 38px;
+  --text-display-sm--line-height: 0.98;
 }

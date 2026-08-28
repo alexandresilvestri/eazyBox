@@ -37,8 +37,8 @@ export default function Entrar() {
   }
 
   return (
-    <div className="flex min-h-dvh bg-surface">
-      <section className="flex flex-1 flex-col justify-between gap-14 border-r border-hairline px-16 py-14">
+    <div className="flex min-h-dvh flex-col bg-surface lg:flex-row">
+      <section className="flex flex-1 flex-col justify-between gap-10 border-b border-hairline px-6 py-10 lg:gap-14 lg:border-r lg:border-b-0 lg:px-16 lg:py-14">
         <div className="flex items-center gap-3.5">
           <Mark className="size-11" />
           <span className="font-display text-xl tracking-heading">EazyBox</span>
@@ -46,7 +46,7 @@ export default function Entrar() {
 
         <div className="max-w-xl">
           <p className="eyebrow">Painel de gestão</p>
-          <h1 className="mt-3.5 font-display text-display tracking-display">
+          <h1 className="mt-3.5 font-display text-display-sm tracking-display lg:text-display">
             A box roda
             <br />
             no horário.
@@ -57,7 +57,7 @@ export default function Entrar() {
           </p>
         </div>
 
-        <div className="flex gap-10">
+        <div className="flex flex-wrap gap-x-10 gap-y-5">
           {HIGHLIGHTS.map((item) => (
             <div key={item.detail}>
               <p className="text-heading font-bold tracking-heading">
@@ -71,7 +71,7 @@ export default function Entrar() {
 
       <form
         onSubmit={submit}
-        className="flex w-[520px] shrink-0 flex-col justify-center gap-7 px-16"
+        className="flex w-full shrink-0 flex-col justify-center gap-7 px-6 py-10 lg:w-[520px] lg:px-16 lg:py-0"
       >
         <div>
           <h2 className="text-xl font-bold">Entrar no painel</h2>

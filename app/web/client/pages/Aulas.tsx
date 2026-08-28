@@ -51,6 +51,7 @@ export default function Aulas() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [assigning, setAssigning] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const userById = useMemo(() => byId(users), [users])
   const workoutById = useMemo(() => byId(workouts), [workouts])
@@ -72,26 +73,38 @@ export default function Aulas() {
   const closed = selected ? checkinState(selected, now) === 'closed' : true
 
   async function assignWorkout(workoutId: string) {
-    await Promise.all(
-      daySessions.map((session) =>
-        apiFetch(`/workout-sessions/${session.id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ workoutId }),
-        }).catch(() => undefined)
+    setError(null)
+    try {
+      await Promise.all(
+        daySessions.map((session) =>
+          apiFetch(`/workout-sessions/${session.id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ workoutId }),
+          })
+        )
       )
-    )
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Não foi possível atribuir o WOD'
+      )
+    }
     await reload.sessions()
   }
 
   async function changeCapacity(capacity: number) {
     if (!selected) return
     setBusy(true)
+    setError(null)
     try {
       await apiFetch(`/workout-sessions/${selected.id}`, {
         method: 'PATCH',
         body: JSON.stringify({ capacity }),
       })
       await reload.sessions()
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Não foi possível mudar as vagas'
+      )
     } finally {
       setBusy(false)
     }
@@ -100,12 +113,19 @@ export default function Aulas() {
   async function addAttendee(user: User) {
     if (!selected) return
     setBusy(true)
+    setError(null)
     try {
       await apiFetch(`/workout-sessions/${selected.id}/attendees`, {
         method: 'POST',
         body: JSON.stringify({ userId: user.id }),
       })
       await Promise.all([reload.sessions(), attendees.reload()])
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Não foi possível confirmar o aluno'
+      )
     } finally {
       setBusy(false)
     }
@@ -144,6 +164,8 @@ export default function Aulas() {
         </>
       }
     >
+      {error ? <p className="text-base text-accent-text">{error}</p> : null}
+
       {daySessions.length === 0 ? (
         <Panel className="gap-1.5">
           <p className="text-xl font-bold">Nenhuma aula nesse dia</p>
@@ -234,7 +256,7 @@ export default function Aulas() {
                 <ClockIcon className="size-4.5 text-ink-2" />
                 <span className="text-base text-ink-2">
                   {closed
-                    ? `Check-in fechou às ${hourLabel(selected.time)}`
+                    ? `Check-in do aluno fechou às ${hourLabel(selected.time)} · você ainda pode confirmar quem esqueceu`
                     : `Check-in fecha às ${hourLabel(selected.time)} · abriu ${clockLabel(opensAt(selected))}`}
                 </span>
               </div>
@@ -247,7 +269,7 @@ export default function Aulas() {
                     const user = userById.get(userId)
                     if (user) void addAttendee(user)
                   }}
-                  disabled={busy || closed}
+                  disabled={busy}
                 >
                   <SelectTrigger className="h-9 w-45 text-sm">
                     <SelectValue placeholder="Adicionar aluno" />

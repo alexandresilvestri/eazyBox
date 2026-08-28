@@ -46,6 +46,7 @@ export default function Horarios() {
   const [defaultCapacity, setDefaultCapacity] = useState(DEFAULT_CAPACITY)
   const [editing, setEditing] = useState<Editing | null>(null)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const coaches = users.filter((user) => user.isCoach)
   const userById = useMemo(() => byId(users), [users])
@@ -61,6 +62,7 @@ export default function Horarios() {
 
   function open(weekDay: WeekDay, time: string) {
     const slot = slots.get(`${weekDay} ${time}`) ?? null
+    setError(null)
     setEditing({
       slot,
       weekDay,
@@ -73,6 +75,7 @@ export default function Horarios() {
   async function save() {
     if (!editing) return
     setSaving(true)
+    setError(null)
     const body = {
       weekDay: editing.weekDay,
       time: editing.time,
@@ -88,6 +91,8 @@ export default function Horarios() {
       )
       await reload.schedule()
       setEditing(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar')
     } finally {
       setSaving(false)
     }
@@ -96,12 +101,15 @@ export default function Horarios() {
   async function remove() {
     if (!editing?.slot) return
     setSaving(true)
+    setError(null)
     try {
       await apiFetch(`/workout-schedule/${editing.slot.id}`, {
         method: 'DELETE',
       })
       await reload.schedule()
       setEditing(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível remover')
     } finally {
       setSaving(false)
     }
@@ -260,6 +268,10 @@ export default function Horarios() {
                 onChange={(capacity) => setEditing({ ...editing, capacity })}
               />
             </div>
+
+            {error ? (
+              <p className="text-base text-accent-text">{error}</p>
+            ) : null}
 
             <div className="flex gap-2.5">
               {editing.slot ? (

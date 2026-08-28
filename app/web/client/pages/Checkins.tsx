@@ -27,6 +27,8 @@ import {
 
 type Period = 'day' | 'week' | 'month'
 
+const BOM = '\uFEFF'
+
 const PERIODS: { value: Period; label: string; title: string }[] = [
   { value: 'day', label: 'Dia', title: 'Check-ins do dia' },
   { value: 'week', label: 'Semana', title: 'Check-ins da semana' },
@@ -84,13 +86,13 @@ export default function Checkins() {
       ])
     )
     const url = URL.createObjectURL(
-      new Blob([csv], { type: 'text/csv;charset=utf-8' })
+      new Blob([BOM, csv], { type: 'text/csv;charset=utf-8' })
     )
     const link = document.createElement('a')
     link.href = url
     link.download = `check-ins-${isoDate(start)}.csv`
     link.click()
-    URL.revokeObjectURL(url)
+    setTimeout(() => URL.revokeObjectURL(url), 0)
   }
 
   return (

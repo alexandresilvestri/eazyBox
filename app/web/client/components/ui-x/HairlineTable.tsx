@@ -18,19 +18,21 @@ export function HairlineTable({
     <ColumnsContext.Provider value={columns}>
       <div
         className={cn(
-          'flex min-h-0 flex-col overflow-hidden rounded-lg bg-panel px-5.5',
+          'flex min-h-0 flex-col overflow-hidden rounded-lg bg-panel',
           className
         )}
       >
-        <div
-          className="grid gap-3.5 border-b border-hairline pt-3.5 pb-2.5 text-2xs font-semibold tracking-label text-ink-3 uppercase"
-          style={{ gridTemplateColumns: columns }}
-        >
-          {head.map((label, index) => (
-            <span key={`${label}-${index}`}>{label}</span>
-          ))}
+        <div className="flex min-h-0 flex-col overflow-y-auto px-5.5">
+          <div
+            className="sticky top-0 z-10 grid gap-3.5 border-b border-hairline bg-panel pt-3.5 pb-2.5 text-2xs font-semibold tracking-label text-ink-3 uppercase"
+            style={{ gridTemplateColumns: columns }}
+          >
+            {head.map((label, index) => (
+              <span key={`${label}-${index}`}>{label}</span>
+            ))}
+          </div>
+          {children}
         </div>
-        <div className="flex min-h-0 flex-col overflow-y-auto">{children}</div>
       </div>
     </ColumnsContext.Provider>
   )
@@ -51,6 +53,7 @@ export function HairlineRow({
     <div
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
+      aria-pressed={onClick ? selected : undefined}
       onClick={onClick}
       onKeyDown={(event) => {
         if (onClick && (event.key === 'Enter' || event.key === ' ')) {

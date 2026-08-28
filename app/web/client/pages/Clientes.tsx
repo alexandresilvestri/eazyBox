@@ -94,12 +94,15 @@ export default function Clientes() {
 
   async function toggleActive(user: User) {
     setBusy(true)
+    setError(null)
     try {
       await apiFetch(`/users/${user.id}`, {
         method: 'PATCH',
         body: JSON.stringify({ isActive: !user.isActive }),
       })
       await reload.users()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar')
     } finally {
       setBusy(false)
     }
@@ -126,6 +129,10 @@ export default function Clientes() {
         </>
       }
     >
+      {error && !creating ? (
+        <p className="text-base text-accent-text">{error}</p>
+      ) : null}
+
       <HairlineTable
         columns="1.2fr 1.4fr 110px 110px 130px 90px"
         head={[

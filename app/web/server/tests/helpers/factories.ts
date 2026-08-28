@@ -45,14 +45,34 @@ export async function createWorkout(wod = 'Fran') {
   return row.id as string
 }
 
-export async function createSlot(weekDay = 'monday', time = '06:00') {
+type SlotOverrides = { capacity?: number; coachId?: string }
+
+export async function createSlot(
+  weekDay = 'monday',
+  time = '06:00',
+  overrides: SlotOverrides = {}
+) {
   const [row] = await owner('workout_schedule')
-    .insert({ week_day: weekDay, time })
+    .insert({
+      week_day: weekDay,
+      time,
+      ...(overrides.capacity === undefined
+        ? {}
+        : { capacity: overrides.capacity }),
+      ...(overrides.coachId === undefined
+        ? {}
+        : { coach_id: overrides.coachId }),
+    })
     .returning(['id', 'week_day', 'time'])
   return { id: row.id as string, weekDay, time }
 }
 
-export async function createSession(sessionDate = '2026-08-24') {
+type SessionOverrides = { capacity?: number; coachId?: string }
+
+export async function createSession(
+  sessionDate = '2026-08-24',
+  overrides: SessionOverrides = {}
+) {
   const existing = await owner('workout_schedule')
     .select('id', 'week_day', 'time')
     .first()
@@ -72,6 +92,12 @@ export async function createSession(sessionDate = '2026-08-24') {
       week_day: slot.weekDay,
       time: slot.time,
       session_date: sessionDate,
+      ...(overrides.capacity === undefined
+        ? {}
+        : { capacity: overrides.capacity }),
+      ...(overrides.coachId === undefined
+        ? {}
+        : { coach_id: overrides.coachId }),
     })
     .returning('id')
 
@@ -80,4 +106,9 @@ export async function createSession(sessionDate = '2026-08-24') {
     workoutScheduleId: slot.id,
     workoutId,
   }
+}
+
+export async function createAnnouncement(body = 'Aviso da box') {
+  const [row] = await owner('announcements').insert({ body }).returning('id')
+  return row.id as string
 }

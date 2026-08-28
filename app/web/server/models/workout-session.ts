@@ -1,5 +1,5 @@
 import type { Knex } from 'knex'
-import type { WorkoutSession } from '@eazybox/shared'
+import type { SessionAttendee, WorkoutSession } from '@eazybox/shared'
 
 const COLUMNS: (keyof WorkoutSession)[] = [
   'id',
@@ -8,9 +8,19 @@ const COLUMNS: (keyof WorkoutSession)[] = [
   'weekDay',
   'time',
   'sessionDate',
+  'capacity',
+  'coachId',
   'createdAt',
   'updatedAt',
 ]
+
+export type SessionStatsRow = {
+  workoutSessionId: string
+  occupied: number
+  coachId: string | null
+  coachFirstName: string | null
+  coachLastName: string | null
+}
 
 export class WorkoutSessionModel {
   constructor(private readonly db: Knex) {}
@@ -21,6 +31,18 @@ export class WorkoutSessionModel {
       .whereNull('deletedAt')
       .orderBy(['sessionDate', 'time'])
     return from ? query.where('sessionDate', '>=', from) : query
+  }
+
+  findStats(from?: string) {
+    return this.db
+      .select<SessionStatsRow[]>('*')
+      .from(this.db.raw('app.session_stats(?)', [from ?? null]))
+  }
+
+  findAttendees(id: string) {
+    return this.db
+      .select<SessionAttendee[]>('*')
+      .from(this.db.raw('app.session_attendees(?)', [id]))
   }
 
   findById(id: string) {

@@ -208,3 +208,50 @@ describe('delete', () => {
     expect(res.status).toBe(403)
   })
 })
+
+describe('role and status flags', () => {
+  test('an admin promotes a member to coach', async () => {
+    const admin = await createUser({ isAdmin: true })
+    const member = await createUser()
+    const res = await api('PATCH', `/users/${member.id}`, {
+      headers: await bearer(admin),
+      body: { isCoach: true },
+    })
+    expect(res.status).toBe(200)
+    expect(res.body.isCoach).toBe(true)
+  })
+
+  test('an admin deactivates a member', async () => {
+    const admin = await createUser({ isAdmin: true })
+    const member = await createUser()
+    const res = await api('PATCH', `/users/${member.id}`, {
+      headers: await bearer(admin),
+      body: { isActive: false },
+    })
+    expect(res.status).toBe(200)
+    expect(res.body.isActive).toBe(false)
+  })
+
+  test('a member cannot promote itself', async () => {
+    const member = await createUser()
+    const res = await api('PATCH', `/users/${member.id}`, {
+      headers: await bearer(member),
+      body: { isCoach: true },
+    })
+    expect(res.status).toBe(403)
+    const after = await api('GET', `/users/${member.id}`, {
+      headers: await bearer(member),
+    })
+    expect(after.body.isCoach).toBe(false)
+  })
+
+  test('a coach cannot touch another member', async () => {
+    const coach = await createUser({ isCoach: true })
+    const member = await createUser()
+    const res = await api('PATCH', `/users/${member.id}`, {
+      headers: await bearer(coach),
+      body: { isActive: false },
+    })
+    expect(res.status).toBe(404)
+  })
+})

@@ -1,10 +1,12 @@
 import type { Context } from 'hono'
 import { createUserSchema, updateUserSchema } from '@eazybox/shared'
-import { EmailAlreadyTaken, UserNotFound } from '../errors'
+import { EmailAlreadyTaken, FlagChangeForbidden, UserNotFound } from '../errors'
 import { INVALID_PAYLOAD } from './messages'
 import type { AppEnv } from '../context'
 
 const NOT_FOUND = 'Usuário não encontrado'
+const EMAIL_TAKEN = 'Já existe um usuário com esse e-mail'
+const FLAG_FORBIDDEN = 'Sem permissão para alterar esse campo'
 
 export const list = async (c: Context<AppEnv>) =>
   c.json(await c.get('services').users.list())
@@ -32,7 +34,7 @@ export const create = async (c: Context<AppEnv>) => {
     return c.json(await c.get('services').users.create(parsed.data), 201)
   } catch (err) {
     if (err instanceof EmailAlreadyTaken) {
-      return c.json({ error: 'Já existe um usuário com esse e-mail' }, 409)
+      return c.json({ error: EMAIL_TAKEN }, 409)
     }
     throw err
   }
@@ -55,7 +57,10 @@ export const update = async (c: Context<AppEnv, '/:id'>) => {
       return c.json({ error: NOT_FOUND }, 404)
     }
     if (err instanceof EmailAlreadyTaken) {
-      return c.json({ error: 'Já existe um usuário com esse e-mail' }, 409)
+      return c.json({ error: EMAIL_TAKEN }, 409)
+    }
+    if (err instanceof FlagChangeForbidden) {
+      return c.json({ error: FLAG_FORBIDDEN }, 403)
     }
     throw err
   }

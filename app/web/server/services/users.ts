@@ -1,6 +1,6 @@
-import { EmailAlreadyTaken, UserNotFound } from '../errors'
+import { EmailAlreadyTaken, FlagChangeForbidden, UserNotFound } from '../errors'
 import type { UserModel } from '../models/user'
-import { isUniqueViolation } from './constants'
+import { isInsufficientPrivilege, isUniqueViolation } from './constants'
 import type { CreateUserInput, UpdateUserInput } from '@eazybox/shared'
 
 export class UsersService {
@@ -39,6 +39,9 @@ export class UsersService {
     } catch (err) {
       if (isUniqueViolation(err)) {
         throw new EmailAlreadyTaken()
+      }
+      if (isInsufficientPrivilege(err)) {
+        throw new FlagChangeForbidden()
       }
       throw err
     }

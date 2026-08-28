@@ -5,6 +5,7 @@ import { OWNER_ADMIN_URL, TEST_DB_NAME } from './env'
 const MIGRATIONS_DIR = new URL('../../db/migrations', import.meta.url).pathname
 
 export const TABLES = [
+  'announcements',
   'checkins',
   'workout_sessions',
   'workout_schedule',

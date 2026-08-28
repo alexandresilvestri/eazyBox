@@ -166,3 +166,72 @@ describe('staff-write tables', () => {
     ).rejects.toThrow(/row-level security/)
   })
 })
+
+describe('announcements policies', () => {
+  test('a member reads but cannot write', async () => {
+    const member = await createUser()
+    await owner('announcements').insert({ body: 'Team WOD sábado' })
+    expect(await countOf({ userId: member.id }, 'announcements')).toBe(1)
+
+    await expect(
+      asRole({ userId: member.id }, (trx) =>
+        trx('announcements').insert({ body: 'x' })
+      )
+    ).rejects.toThrow(/row-level security/)
+  })
+
+  test('a coach writes', async () => {
+    const coach = await createUser({ isCoach: true })
+    const identity = { userId: coach.id, isCoach: true }
+    await asRole(identity, (trx) =>
+      trx('announcements').insert({ body: 'Team WOD sábado' })
+    )
+    expect(await countOf(identity, 'announcements')).toBe(1)
+  })
+
+  test('an unset identity sees nothing', async () => {
+    await owner('announcements').insert({ body: 'Team WOD sábado' })
+    expect(await countOf({}, 'announcements')).toBe(0)
+  })
+})
+
+describe('security definer helpers', () => {
+  const statsOf = (identity: Identity) =>
+    asRole(identity, (trx) =>
+      trx.select('*').from(trx.raw('app.session_stats(?)', [null]))
+    )
+
+  test('session_stats returns nothing without an identity', async () => {
+    await createSession()
+    expect(await statsOf({})).toHaveLength(0)
+  })
+
+  test('session_stats counts a check-in the member cannot select', async () => {
+    const member = await createUser()
+    const other = await createUser()
+    const { id: sessionId } = await createSession()
+    await owner('checkins').insert({
+      user_id: other.id,
+      workout_session_id: sessionId,
+    })
+
+    const rows = await statsOf({ userId: member.id })
+    expect(rows).toHaveLength(1)
+    expect(Number(rows[0].occupied)).toBe(1)
+    expect(await countOf({ userId: member.id }, 'checkins')).toBe(0)
+  })
+
+  test('session_attendees returns nothing without an identity', async () => {
+    const other = await createUser()
+    const { id: sessionId } = await createSession()
+    await owner('checkins').insert({
+      user_id: other.id,
+      workout_session_id: sessionId,
+    })
+
+    const rows = await asRole({}, (trx) =>
+      trx.select('*').from(trx.raw('app.session_attendees(?)', [sessionId]))
+    )
+    expect(rows).toHaveLength(0)
+  })
+})

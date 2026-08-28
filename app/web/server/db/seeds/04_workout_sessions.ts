@@ -31,9 +31,19 @@ const toIsoDate = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 
 export async function seed(knex: Knex) {
-  const slots: { id: string; weekDay: WeekDay; time: string }[] = await knex(
-    'workout_schedule'
-  ).select('id', 'weekDay', 'time')
+  const slots: {
+    id: string
+    weekDay: WeekDay
+    time: string
+    capacity: number
+    coachId: string | null
+  }[] = await knex('workout_schedule').select(
+    'id',
+    'weekDay',
+    'time',
+    'capacity',
+    'coachId'
+  )
 
   const workouts: { id: string }[] = await knex('workouts').select('id')
   const queue = workouts.map((workout) => workout.id)
@@ -66,6 +76,8 @@ export async function seed(knex: Knex) {
         weekDay: slot.weekDay,
         time: slot.time,
         sessionDate,
+        capacity: slot.capacity,
+        coachId: slot.coachId,
       })
     }
   }

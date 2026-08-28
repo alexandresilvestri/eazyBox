@@ -1,3 +1,4 @@
+export * as announcementsController from './announcements'
 export * as authController from './auth'
 export * as checkinsController from './checkins'
 export * as usersController from './users'

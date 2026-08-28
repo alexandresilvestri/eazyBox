@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { announcementsRoutes } from './announcements'
 import { createAuthRoutes } from './auth'
 import { checkinsRoutes } from './checkins'
 import { usersRoutes } from './users'
@@ -15,6 +16,7 @@ const PROTECTED = [
   ['/workout-schedule', workoutScheduleRoutes],
   ['/workout-sessions', workoutSessionsRoutes],
   ['/checkins', checkinsRoutes],
+  ['/announcements', announcementsRoutes],
 ] as const
 
 const routes = new Hono<AppEnv>()

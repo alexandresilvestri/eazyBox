@@ -1,0 +1,58 @@
+@theme {
+  --color-canvas: #0a0a0b;
+  --color-surface: #111112;
+  --color-panel: #2b2b2b;
+
+  --color-ink-1: #ededea;
+  --color-ink-2: rgba(237, 237, 234, 0.62);
+  --color-ink-3: rgba(237, 237, 234, 0.4);
+  --color-ink-ghost: rgba(237, 237, 234, 0.14);
+
+  --color-hairline: rgba(237, 237, 234, 0.14);
+  --color-hairline-strong: rgba(237, 237, 234, 0.4);
+  --color-row-hover: rgba(237, 237, 234, 0.04);
+  --color-scrim: rgba(10, 10, 11, 0.72);
+
+  --color-accent-solid: #ff4d1c;
+  --color-accent-text: #ff4d1c;
+  --color-accent-ink: #111112;
+  --color-accent-fill: rgba(255, 77, 28, 0.14);
+  --color-accent-fill-weak: rgba(255, 77, 28, 0.06);
+  --color-accent-border: rgba(255, 77, 28, 0.55);
+
+  --color-highlight: #ffd400;
+  --color-highlight-ink: #111112;
+
+  --font-sans: Archivo, system-ui, sans-serif;
+  --font-display: 'Archivo Black', Archivo, sans-serif;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+
+  --tracking-bold: 0.12em;
+  --tracking-label: 0.14em;
+  --tracking-eyebrow: 0.16em;
+  --tracking-display: -0.03em;
+  --tracking-heading: -0.02em;
+
+  --text-2xs: 11px;
+  --text-2xs--line-height: 14px;
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 13px;
+  --text-sm--line-height: 18px;
+  --text-base: 14px;
+  --text-base--line-height: 20px;
+  --text-md: 15px;
+  --text-md--line-height: 22px;
+  --text-lg: 16px;
+  --text-lg--line-height: 24px;
+  --text-xl: 20px;
+  --text-xl--line-height: 25px;
+  --text-heading: 34px;
+  --text-heading--line-height: 1.05;
+  --text-display: 56px;
+  --text-display--line-height: 0.96;
+}

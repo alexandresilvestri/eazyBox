@@ -9,6 +9,7 @@ const COLLECTIONS = [
   '/workout-schedule',
   '/workout-sessions',
   '/checkins',
+  '/announcements',
 ]
 
 describe('public routes', () => {

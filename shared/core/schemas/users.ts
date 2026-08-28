@@ -9,7 +9,11 @@ export const createUserSchema = z.object({
 
 export const updateUserSchema = createUserSchema
   .pick({ email: true, firstName: true, lastName: true })
-  .partial();
+  .partial()
+  .extend({
+    isCoach: z.boolean().optional(),
+    isActive: z.boolean().optional(),
+  });
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;

@@ -9,6 +9,8 @@ export const timeSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 export const createWorkoutScheduleSchema = z.object({
   weekDay: weekDaySchema,
   time: timeSchema,
+  capacity: z.int().positive().optional(),
+  coachId: z.uuid().nullish(),
 });
 
 export const updateWorkoutScheduleSchema =

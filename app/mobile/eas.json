@@ -1,0 +1,52 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "bun": "1.3.14",
+      "android": {
+        "image": "latest"
+      },
+      "ios": {
+        "image": "latest"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://localhost:3000"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "bun": "1.3.14",
+      "android": {
+        "image": "latest",
+        "buildType": "apk"
+      },
+      "ios": {
+        "image": "latest"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://eazybox.com.br"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "bun": "1.3.14",
+      "android": {
+        "image": "latest"
+      },
+      "ios": {
+        "image": "latest"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://eazybox.com.br"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

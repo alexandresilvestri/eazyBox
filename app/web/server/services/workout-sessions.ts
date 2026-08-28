@@ -10,11 +10,37 @@ import { isUniqueViolation, CACHE_PREFIX, LIST_TTL_SECONDS } from './constants'
 const PREFIX = CACHE_PREFIX.workoutSessions
 import type { WorkoutModel } from '../models/workout'
 import type { WorkoutScheduleModel } from '../models/workout-schedule'
-import type { WorkoutSessionModel } from '../models/workout-session'
+import type {
+  SessionStatsRow,
+  WorkoutSessionModel,
+} from '../models/workout-session'
 import type {
   CreateWorkoutSessionInput,
   UpdateWorkoutSessionInput,
+  WorkoutSession,
+  WorkoutSessionWithStats,
 } from '@eazybox/shared'
+
+const withStats = (
+  sessions: WorkoutSession[],
+  stats: SessionStatsRow[]
+): WorkoutSessionWithStats[] => {
+  const byId = new Map(stats.map((row) => [row.workoutSessionId, row]))
+  return sessions.map((session) => {
+    const row = byId.get(session.id)
+    return {
+      ...session,
+      occupied: row?.occupied ?? 0,
+      coach: row?.coachId
+        ? {
+            id: row.coachId,
+            firstName: row.coachFirstName ?? '',
+            lastName: row.coachLastName ?? '',
+          }
+        : null,
+    }
+  })
+}
 
 export class WorkoutSessionsService {
   constructor(
@@ -26,9 +52,21 @@ export class WorkoutSessionsService {
   list(from?: string) {
     return cached(
       `${PREFIX}list:${from ?? 'all'}`,
-      () => this.sessions.findAll(from),
+      async () =>
+        withStats(
+          await this.sessions.findAll(from),
+          await this.sessions.findStats(from)
+        ),
       LIST_TTL_SECONDS
     )
+  }
+
+  async attendees(id: string) {
+    const attendees = await this.sessions.findAttendees(id)
+    if (attendees.length === 0) {
+      await this.findById(id)
+    }
+    return attendees
   }
 
   async findById(id: string) {
@@ -51,6 +89,8 @@ export class WorkoutSessionsService {
 
     try {
       const session = await this.sessions.insert({
+        capacity: slot.capacity,
+        coachId: slot.coachId,
         ...input,
         weekDay: slot.weekDay,
         time: slot.time,

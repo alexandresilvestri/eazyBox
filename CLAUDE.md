@@ -1,8 +1,8 @@
 # eazybox
 
-Bun monorepo, API only. Workspaces: `app/web` (Hono API), `shared` (`@eazybox/shared`, types and Zod schemas).
+Bun monorepo. Workspaces: `app/web` (Hono API + the staff panel), `app/mobile` (Expo, the student app), `shared` (`@eazybox/shared`, cross-platform types and Zod schemas).
 
-Bun only — no Node, no Vite, no webpack, no browser bundle. The server serves JSON under `/api` and nothing else; any other path gets Hono's 404.
+Two clients, two bundlers, no Vite and no webpack. `app/web/client` is the admin/coach panel, bundled by **Bun itself**: `server/server.ts` imports `../client/index.html` and `Bun.serve` routes `/api/*` to Hono and everything else to that page. `app/mobile` is the student app, bundled by Metro through the Expo CLI. Both talk to the same `/api`.
 
 ## Commands
 
@@ -12,7 +12,7 @@ From the repo root:
 | --- | --- |
 | `make up` / `make down` | Postgres + Redis via docker compose |
 | `make install` | `bun install --frozen-lockfile` |
-| `make dev` | API with hot reload (`bun --hot server/server.ts`) |
+| `make dev` | API + staff panel with hot reload and HMR (`bun --hot server/server.ts`) |
 | `make typecheck` | `tsc --noEmit` across all workspaces |
 | `make lint` / `make lint-fix` | ESLint over `app/web` |
 | `make format` / `make format-check` | Prettier over `app/web` |
@@ -23,6 +23,8 @@ From the repo root:
 | `make pgcli` | Open a psql session |
 | `make admin` | Bootstrap the first admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD` |
 | `make seed` | Wipe the dev database and refill it with fictional data |
+| `make mobile` | Expo dev server (`mobile-android`, `mobile-ios`, `mobile-web` target a platform) |
+| `make mobile-lint` / `make mobile-typecheck` | Quality checks for `app/mobile` |
 
 `bun run --filter` runs each script with cwd set to the workspace, and Bun only auto-loads `.env` from cwd — the root `.env` is invisible there. Makefile targets that need it (`dev`, `migrate*`, `admin`) source it through `$(LOAD_ENV)`. Test targets deliberately do not: `server/tests/helpers/env.ts` owns the test defaults, and exporting the dev `DATABASE_URL` into `bun test` points the suite at the dev database as owner, which makes RLS inert.
 
@@ -40,7 +42,7 @@ Tests are `bun test`. There is no second runner. `app/web/bunfig.toml` preloads 
 
 # Server architecture — app/web
 
-Applies to `app/web/server/**`.
+Applies to `app/web/server/**` only. Not `app/web/client` (see **Client** below), not `app/mobile` (see `app/mobile/CLAUDE.md`).
 
 Each layer imports only the layer directly below it, through that layer's `index.ts`.
 
@@ -235,9 +237,35 @@ Authorization is enforced twice: `requireAdmin()` / `requireStaff()` in `routes/
   - It does **not** cover anyone holding an `app_user` session or achieving SQL injection — `set app.is_admin='true'` escalates. Treat `DATABASE_URL` credentials as privileged.
   - Accepted consequence: demoting a user leaves their access token privileged until it expires (15 min). Refresh picks up the new flags via `app.find_identity`; `integration/auth.test.ts` asserts this.
 - **If `DATABASE_URL` points at the owner instead of `app_user`, RLS is silently inert** — every policy still exists and nothing errors. Check with `select current_user` before trusting a manual RLS test.
-- Pre-identity reads go through `SECURITY DEFINER` functions (`app.find_login`, `app.find_identity`). These are the only paths that bypass policies; do not add more without a reason.
+- Pre-identity reads go through `SECURITY DEFINER` functions (`app.find_login`, `app.find_identity`). Two more definer functions exist for reads RLS cannot express, both guarded by `app.is_authenticated()` and granted only to `app_user`: `app.session_stats(date)` (occupancy + the coach card per session) and `app.session_attendees(uuid)` (the roster with each check-in time). A policy is row-level, so it cannot reveal a peer's name while hiding their e-mail — that is the whole reason these exist. Do not add more without the same kind of reason.
+- `checkins_insert` is `own row or app.is_staff()`: a coach may confirm the member who forgot, through `POST /api/workout-sessions/:id/attendees`. `checkins_update` stays own-row, so **only the member can undo their own check-in**.
 - `cached()` may only wrap identity-invariant reads (`workouts`, `workout_schedule`, `workout_sessions`). Anything RLS filters per user must skip the cache or one member's rows will be served to another.
 - Cache prefixes live in `services/constants.ts` as `CACHE_PREFIX` / `CACHE_PREFIXES`. A new cached resource must add its prefix there, because `server/tests/setup.ts` clears that same list between tests — truncating tables bypasses the service layer, so nothing else invalidates Redis.
+
+# Client — app/web/client
+
+The admin/coach panel: React 19 + react-router 7 + Tailwind v4, bundled by Bun (`bunfig.toml` registers `bun-plugin-tailwind` under `[serve.static]`).
+
+```
+client/index.html         the page Bun.serve routes /* to
+client/App.tsx            AuthProvider + routes; RequireAdmin wraps the admin-only pair
+client/auth-context.tsx   the cookie mount: /auth/login, /auth/me, /auth/logout
+client/box-context.tsx    sessions, schedule, workouts, checkins and users fetched once, plus reload()
+client/components/layout  TopBar and Shell; nav-items.ts is the single source for tabs and routes
+client/components/ui      cva primitives + the two radix pieces used (dialog, select) and icons.tsx
+client/components/ui-x    the shapes the design repeats (HairlineTable, StatCard, BarChart, Stepper, …)
+client/pages              one file per section
+client/tokens.css         the only place colors, radii, fonts and type rungs live
+client/lib/reports.ts     every dashboard and report aggregate, computed in the browser
+```
+
+- **The panel is on the cookie mount.** `client/lib/api.ts` calls `/api...` same-origin, so the `httpOnly` session cookie rides along by itself. Never send a bearer token from the panel and never touch the refresh token in JS — that split is the point of `withTransport()`.
+- Reports are aggregated client-side on purpose: staff already reads every session, check-in and user through RLS, so there is no `/reports` endpoint to keep in sync. `lib/reports.ts` is the single home for those sums.
+- Depend on `@radix-ui/react-dialog` / `@radix-ui/react-select` directly, never the `radix-ui` umbrella (its index namespace-imports 35 primitives), and keep icons as inline SVG in `client/components/ui/icons.tsx` rather than an icon package barrel.
+- react-router is pinned to **7.x**. 8.x requires react `>=19.2.7` while Expo SDK 57 pins react to `19.2.3`, so 8.x installs a second React into `node_modules/react-router/node_modules` and every hook throws `Cannot read properties of null (reading 'useRef')`.
+- Roles come from `/auth/me` (`user.isAdmin` / `user.isCoach`) — the design's Admin/Coach switch was a canvas preview control and is not built. `nav-items.ts` marks the admin-only sections; a coach loses both the tab and the route.
+- Session and day arithmetic comes from `@eazybox/shared` (`shared/core/sessions.ts`), the same helpers the mobile app uses. Do not re-derive `dayKey` / `startsAt` / the check-in window here.
+- No Playwright: `bun test` stays the only runner. Verify the panel with `make dev` and a browser, the way the mobile screens are verified.
 
 # Migrations run on Node, not Bun
 
@@ -251,7 +279,7 @@ Authorization is enforced twice: `requireAdmin()` / `requireStaff()` in `routes/
 - Do not redeclare in `server/models/` a type shared already exports.
 - Server-only shapes that must not reach a client (the `users` row including `password`) live in the model file, not in shared.
 
-Gotcha: `updateUserSchema` is `z.object({})`, so `PATCH /api/users/:id` strips every field. Define its fields before relying on that endpoint.
+`updateUserSchema` accepts `email`, `firstName`, `lastName`, `isCoach` and `isActive`. The flags are gated twice — the `users_update_admin` policy and the `app.guard_user_flags` trigger — so a member patching its own row can rename itself but not promote itself; the service maps the trigger's `42501` to `FlagChangeForbidden`, which the controller answers with 403.
 
 ---
 
@@ -262,7 +290,8 @@ Gotcha: `updateUserSchema` is `z.object({})`, so `PATCH /api/users/:id` strips e
 - Relative imports are extensionless (`moduleResolution: "bundler"`).
 - No comments. Extract a named function or constant instead of explaining a block.
 - English identifiers, Portuguese user-facing API messages.
-- `window`, `document`, `localStorage` are ESLint errors under `server/**`.
+- `window`, `document`, `localStorage` are ESLint errors under `server/**`; `client/**` gets browser globals plus the React and react-hooks rules.
+- Bracket font sizes (`text-[15px]`) are an ESLint error under `client/**` — add a rung to `client/tokens.css` instead.
 
 ---
 

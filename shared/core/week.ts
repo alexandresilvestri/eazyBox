@@ -27,6 +27,12 @@ export const isoDate = (date: Date) =>
     String(date.getDate()).padStart(2, "0"),
   ].join("-");
 
+export const addDays = (date: Date, days: number) => {
+  const shifted = new Date(date);
+  shifted.setDate(shifted.getDate() + days);
+  return shifted;
+};
+
 export const startOfWeek = (date: Date) => {
   const monday = new Date(date);
   monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));

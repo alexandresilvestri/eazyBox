@@ -5,6 +5,8 @@ const COLUMNS: (keyof WorkoutSchedule)[] = [
   'id',
   'weekDay',
   'time',
+  'capacity',
+  'coachId',
   'createdAt',
   'updatedAt',
 ]

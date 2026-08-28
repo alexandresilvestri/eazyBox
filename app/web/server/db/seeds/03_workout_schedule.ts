@@ -8,14 +8,17 @@ const TIMES = ['06:00', '07:00', '12:00', '18:00', '19:00']
 
 const MORNING_LIMIT = '12:00'
 
-export async function seed(knex: Knex) {
-  const [eveningCoach, morningCoach]: { id: string }[] = await knex('users')
-    .select('id')
-    .where({ isCoach: true })
-    .orderBy('email')
+const EVENING_LIMIT = '18:00'
 
-  const coachFor = (time: string) =>
-    (time < MORNING_LIMIT ? morningCoach?.id : eveningCoach?.id) ?? null
+export async function seed(knex: Knex) {
+  const [morningCoach, middayCoach, eveningCoach]: { id: string }[] =
+    await knex('users').select('id').where({ isCoach: true }).orderBy('email')
+
+  const coachFor = (time: string) => {
+    if (time < MORNING_LIMIT) return morningCoach?.id ?? null
+    if (time < EVENING_LIMIT) return middayCoach?.id ?? null
+    return eveningCoach?.id ?? null
+  }
 
   const slots = DAYS.flatMap((weekDay) =>
     TIMES.map((time) => ({

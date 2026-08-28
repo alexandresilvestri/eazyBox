@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 import type { ReactNode } from "react";
 
-import { colors, fonts, layout } from "@/constants/theme";
+import { colors, fonts, layout, MAX_FONT_SCALE } from "@/constants/theme";
 
 export function TabItem({
   label,
@@ -24,7 +24,13 @@ export function TabItem({
       style={styles.item}
     >
       {icon(color)}
-      <Text style={[styles.label, { color }]}>{label}</Text>
+      <Text
+        numberOfLines={1}
+        maxFontSizeMultiplier={MAX_FONT_SCALE}
+        style={[styles.label, { color }]}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -32,7 +38,7 @@ export function TabItem({
 const styles = StyleSheet.create({
   item: {
     flex: 1,
-    height: layout.tabItem,
+    minHeight: layout.tabItem,
     alignItems: "center",
     justifyContent: "center",
     gap: 5,

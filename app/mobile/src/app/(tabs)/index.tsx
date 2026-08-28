@@ -25,7 +25,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { Screen } from "@/components/ui/screen";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { WeekStrip } from "@/components/ui/week-strip";
-import { colors, text } from "@/constants/theme";
+import { colors, MAX_FONT_SCALE, text } from "@/constants/theme";
 import { useAuth } from "@/lib/auth";
 import { useBox } from "@/lib/box";
 import { countdown, relativeTime } from "@/lib/format";
@@ -61,37 +61,44 @@ export default function HomeScreen() {
 
       {next ? (
         <Card gap={16}>
-          <View style={styles.heroTop}>
-            <View>
-              <Text style={text.label}>
-                Próxima aula ·{" "}
+          <View style={styles.heroHead}>
+            <View style={styles.heroTop}>
+              <Text
+                style={styles.heroEyebrow}
+                numberOfLines={1}
+                maxFontSizeMultiplier={MAX_FONT_SCALE}
+              >
                 {dayKey(next) === todayKey
-                  ? "hoje"
-                  : dayAndMonth(dayDate(dayKey(next)))}
+                  ? "Próxima aula"
+                  : `Próxima aula · ${dayAndMonth(dayDate(dayKey(next)))}`}
               </Text>
-              <Text style={styles.heroTime}>{hourLabel(next.time)}</Text>
+              {checkinState(next, today) === "early" ? (
+                <Badge label={`Abre em ${countdown(opensAt(next), today)}`} />
+              ) : (
+                <Badge label="Check-in aberto" tone="accent" />
+              )}
             </View>
-            {checkinState(next, today) === "early" ? (
-              <Badge label={`Abre em ${countdown(opensAt(next), today)}`} />
-            ) : (
-              <Badge label="Check-in aberto" tone="accent" />
-            )}
+            <Text style={styles.heroTime} numberOfLines={1}>
+              {hourLabel(next.time)}
+            </Text>
           </View>
 
           <View style={styles.heroDetails}>
             <View style={styles.spread}>
-              <Text style={text.bodyStrong}>
+              <Text style={[text.bodyStrong, styles.shrink]} numberOfLines={1}>
                 {wod?.name ?? "Treino a definir"}
               </Text>
               {next.coach ? (
-                <Text style={text.meta}>Coach {next.coach.firstName}</Text>
+                <Text style={[text.meta, styles.shrink]} numberOfLines={1}>
+                  Coach {next.coach.firstName}
+                </Text>
               ) : null}
             </View>
             <View style={styles.spread}>
-              <Text style={text.meta}>
+              <Text style={[text.meta, styles.shrink]} numberOfLines={1}>
                 {next.occupied} de {next.capacity} vagas ocupadas
               </Text>
-              <Text style={text.meta}>
+              <Text style={text.meta} numberOfLines={1}>
                 {Math.max(0, next.capacity - next.occupied)} livres
               </Text>
             </View>
@@ -114,8 +121,8 @@ export default function HomeScreen() {
         <SectionHeader
           label="WOD de hoje"
           right={
-            <Pressable onPress={() => router.navigate("/wod")}>
-              <Text style={text.caption}>Ver completo →</Text>
+            <Pressable onPress={() => router.navigate("/wod")} hitSlop={12}>
+              <Text style={styles.sectionLink}>Ver completo</Text>
             </Pressable>
           }
         />
@@ -179,15 +186,28 @@ const styles = StyleSheet.create({
     ...text.title,
     marginTop: 4,
   },
+  heroHead: {
+    gap: 6,
+  },
   heroTop: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
   },
+  heroEyebrow: {
+    ...text.label,
+    flexShrink: 1,
+  },
+  sectionLink: {
+    ...text.caption,
+    color: colors.accent,
+  },
   heroTime: {
     ...text.display,
-    marginTop: 8,
+  },
+  shrink: {
+    flexShrink: 1,
   },
   heroDetails: {
     gap: 8,

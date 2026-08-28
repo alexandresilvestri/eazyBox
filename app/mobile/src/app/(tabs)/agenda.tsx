@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import {
   activeCheckin,
   checkinState,
@@ -8,34 +8,46 @@ import {
   isFull,
   isoDate,
   monthHeading,
+  monthShort,
   parseWod,
   sessionsOn,
   weekDayLong,
 } from "@eazybox/shared";
 import type { WorkoutSessionWithStats } from "@eazybox/shared";
 
-import { IconButton } from "@/components/ui/buttons";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight } from "@/components/ui/icons";
 import { MonthGrid } from "@/components/ui/month-grid";
+import { Rail } from "@/components/ui/rail";
 import { Screen } from "@/components/ui/screen";
 import { Section, SectionHeader } from "@/components/ui/section";
 import { SessionRow } from "@/components/ui/session-row";
-import { colors, radius, text } from "@/constants/theme";
+import { colors, MAX_FONT_SCALE, radius, text } from "@/constants/theme";
 import { useBox } from "@/lib/box";
 import { useWorkout } from "@/lib/use-workout";
 
-const shiftMonth = (month: Date, offset: number) =>
-  new Date(month.getFullYear(), month.getMonth() + offset, 1);
+const RAIL_BACK = 6;
+const RAIL_ITEM = 56;
 
 export default function AgendaScreen() {
   const { sessions, checkins, trained } = useBox();
   const today = useMemo(() => new Date(), []);
-  const [month, setMonth] = useState(
-    () => new Date(today.getFullYear(), today.getMonth(), 1),
-  );
+  const [monthIndex, setMonthIndex] = useState(RAIL_BACK);
   const [selected, setSelected] = useState(() => isoDate(today));
 
+  const railMonths = useMemo(
+    () =>
+      Array.from(
+        { length: RAIL_BACK * 2 + 1 },
+        (_, index) =>
+          new Date(
+            today.getFullYear(),
+            today.getMonth() + index - RAIL_BACK,
+            1,
+          ),
+      ),
+    [today],
+  );
+  const month = railMonths[monthIndex];
   const daySessions = sessionsOn(sessions, selected);
   const workout = useWorkout(daySessions[0]?.workoutId);
   const selectedDate = dayDate(selected);
@@ -51,19 +63,32 @@ export default function AgendaScreen() {
 
   return (
     <Screen gap={18}>
-      <View style={styles.header}>
-        <Text style={text.title}>{monthHeading(month)}</Text>
-        <View style={styles.nav}>
-          <IconButton
-            icon={<ChevronLeft color={colors.ink} size={16} />}
-            onPress={() => setMonth(shiftMonth(month, -1))}
-          />
-          <IconButton
-            icon={<ChevronRight color={colors.ink} size={16} />}
-            onPress={() => setMonth(shiftMonth(month, 1))}
-          />
-        </View>
-      </View>
+      <Text style={text.title} numberOfLines={1}>
+        {monthHeading(month)}
+      </Text>
+
+      <Rail activeIndex={monthIndex} itemWidth={RAIL_ITEM}>
+        {railMonths.map((candidate, index) => {
+          const isActive = index === monthIndex;
+          return (
+            <Pressable
+              key={index}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              onPress={() => setMonthIndex(index)}
+              style={[styles.railMonth, isActive && styles.railActive]}
+            >
+              <Text
+                numberOfLines={1}
+                maxFontSizeMultiplier={MAX_FONT_SCALE}
+                style={[styles.railLabel, isActive && styles.railActiveLabel]}
+              >
+                {monthShort(candidate).toUpperCase()}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </Rail>
 
       <MonthGrid
         month={month}
@@ -124,14 +149,25 @@ export default function AgendaScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
+  railMonth: {
+    width: RAIL_ITEM,
+    minHeight: 44,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: radius.control,
+    backgroundColor: colors.card,
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
   },
-  nav: {
-    flexDirection: "row",
-    gap: 8,
+  railActive: {
+    backgroundColor: colors.ink,
+  },
+  railLabel: {
+    ...text.badge,
+    color: colors.ink2,
+  },
+  railActiveLabel: {
+    color: colors.surface,
   },
   legend: {
     flexDirection: "row",

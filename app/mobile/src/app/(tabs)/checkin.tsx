@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useRouter } from "expo-router";
 import {
   activeCheckin,
   CHECKIN_WINDOW_HOURS,
@@ -16,14 +15,10 @@ import {
 
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import {
-  GhostButton,
-  IconButton,
-  PrimaryButton,
-} from "@/components/ui/buttons";
+import { GhostButton, PrimaryButton } from "@/components/ui/buttons";
 import { Card } from "@/components/ui/card";
 import { EmptyCard } from "@/components/ui/empty";
-import { CheckCircleIcon, ChevronLeft, ClockIcon } from "@/components/ui/icons";
+import { CheckCircleIcon, ClockIcon } from "@/components/ui/icons";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Screen } from "@/components/ui/screen";
 import { Section, SectionHeader } from "@/components/ui/section";
@@ -51,7 +46,6 @@ const BANNERS = {
 } as const;
 
 export default function CheckinScreen() {
-  const router = useRouter();
   const { sessions, checkins, reload } = useBox();
   const [submitting, setSubmitting] = useState(false);
 
@@ -97,20 +91,13 @@ export default function CheckinScreen() {
 
   return (
     <Screen gap={20}>
-      <View style={styles.header}>
-        <IconButton
-          icon={<ChevronLeft color={colors.ink} />}
-          onPress={() => router.navigate("/")}
-          outlined
-        />
-        <View>
-          <Text style={text.label}>
-            {dayHeading(target ? dayDate(dayKey(target)) : now)}
-          </Text>
-          <Text style={styles.title}>
-            {target ? `Aula das ${hourLabel(target.time)}` : "Sem aula"}
-          </Text>
-        </View>
+      <View>
+        <Text style={text.label}>
+          {dayHeading(target ? dayDate(dayKey(target)) : now)}
+        </Text>
+        <Text style={styles.title}>
+          {target ? `Aula das ${hourLabel(target.time)}` : "Sem aula"}
+        </Text>
       </View>
 
       {target ? (
@@ -210,11 +197,6 @@ export default function CheckinScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-  },
   title: {
     ...text.title,
     marginTop: 2,

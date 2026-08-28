@@ -1,13 +1,19 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors, fonts } from "@/constants/theme";
+import { colors, fonts, MAX_FONT_SCALE } from "@/constants/theme";
 
 export function Avatar({ label, size = 44 }: { label: string; size?: number }) {
   return (
     <View
       style={[styles.circle, { width: size, height: size, borderRadius: size }]}
     >
-      <Text style={[styles.label, { fontSize: size / 3.1 }]}>{label}</Text>
+      <Text
+        numberOfLines={1}
+        maxFontSizeMultiplier={MAX_FONT_SCALE}
+        style={[styles.label, { fontSize: size / 3.1 }]}
+      >
+        {label}
+      </Text>
     </View>
   );
 }

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors, radius, text } from "@/constants/theme";
+import { colors, MAX_FONT_SCALE, radius, text } from "@/constants/theme";
 
 type Tone = "highlight" | "accent" | "outline";
 
@@ -33,7 +33,13 @@ export function Badge({
         border ? { borderWidth: 1, borderColor: border } : null,
       ]}
     >
-      <Text style={[text.badge, { color }]}>{label}</Text>
+      <Text
+        style={[text.badge, { color }]}
+        numberOfLines={1}
+        maxFontSizeMultiplier={MAX_FONT_SCALE}
+      >
+        {label}
+      </Text>
     </View>
   );
 }
@@ -44,5 +50,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9,
     paddingVertical: 5,
     alignSelf: "flex-start",
+    flexShrink: 1,
   },
 });

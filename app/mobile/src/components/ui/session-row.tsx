@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors, text } from "@/constants/theme";
+import { colors, MAX_FONT_SCALE, text } from "@/constants/theme";
 
 export type SessionRowStatus = {
   label: string;
@@ -18,12 +18,20 @@ export function SessionRow({
 }) {
   return (
     <View style={styles.row}>
-      <Text style={styles.time}>{time}</Text>
+      <Text
+        style={styles.time}
+        numberOfLines={1}
+        maxFontSizeMultiplier={MAX_FONT_SCALE}
+      >
+        {time}
+      </Text>
       <Text style={styles.detail} numberOfLines={1}>
         {detail}
       </Text>
       {status ? (
         <Text
+          numberOfLines={1}
+          maxFontSizeMultiplier={MAX_FONT_SCALE}
           style={[
             styles.status,
             status.highlighted && styles.statusHighlighted,
@@ -40,14 +48,14 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
+    gap: 12,
     paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: colors.line,
   },
   time: {
     ...text.bodyStrong,
-    width: 52,
+    minWidth: 52,
   },
   detail: {
     ...text.meta,

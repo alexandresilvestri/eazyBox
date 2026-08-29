@@ -1,13 +1,17 @@
 import { cached, invalidate } from '../redis'
-import { WorkoutNotFound } from '../errors'
+import { WorkoutInUse, WorkoutNotFound } from '../errors'
 import { CACHE_PREFIX, LIST_TTL_SECONDS } from './constants'
 
 const PREFIX = CACHE_PREFIX.workouts
 import type { WorkoutModel } from '../models/workout'
+import type { WorkoutSessionModel } from '../models/workout-session'
 import type { CreateWorkoutInput, UpdateWorkoutInput } from '@eazybox/shared'
 
 export class WorkoutsService {
-  constructor(private readonly workouts: WorkoutModel) {}
+  constructor(
+    private readonly workouts: WorkoutModel,
+    private readonly workoutSessions: WorkoutSessionModel
+  ) {}
 
   list() {
     return cached(
@@ -41,6 +45,9 @@ export class WorkoutsService {
   }
 
   async remove(id: string) {
+    if (await this.workoutSessions.findAnyByWorkout(id)) {
+      throw new WorkoutInUse()
+    }
     const deleted = await this.workouts.softDelete(id)
     if (!deleted) {
       throw new WorkoutNotFound()

@@ -12,7 +12,7 @@ export const authService = new AuthService(authModel)
 
 export const buildServices = (models: Models) => ({
   users: new UsersService(models.users),
-  workouts: new WorkoutsService(models.workouts),
+  workouts: new WorkoutsService(models.workouts, models.workoutSessions),
   workoutSchedule: new WorkoutScheduleService(models.workoutSchedule),
   workoutSessions: new WorkoutSessionsService(
     models.workoutSessions,

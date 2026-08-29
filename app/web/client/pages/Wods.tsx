@@ -87,6 +87,23 @@ export default function Wods() {
     }
   }
 
+  async function remove() {
+    if (!selectedId) return
+    if (!confirm('Excluir este WOD?')) return
+    setSaving(true)
+    setError(null)
+    try {
+      await apiFetch(`/workouts/${selectedId}`, { method: 'DELETE' })
+      setSelectedId(null)
+      setDraft(draftOf(null))
+      await reload.workouts()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível excluir')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <Page
       eyebrow={`${workouts.length} treinos cadastrados`}
@@ -155,9 +172,21 @@ export default function Wods() {
                 {parseWod(draft.wod).name || 'Sem nome'}
               </p>
             </div>
-            {selectedId && lastUsed.get(selectedId) === today ? (
-              <Badge tone="highlight">Em uso hoje</Badge>
-            ) : null}
+            <div className="flex items-center gap-3">
+              {selectedId && lastUsed.get(selectedId) === today ? (
+                <Badge tone="highlight">Em uso hoje</Badge>
+              ) : null}
+              {selectedId ? (
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => void remove()}
+                  className="text-2xs font-bold tracking-bold text-ink-2 uppercase hover:text-accent-text disabled:opacity-60"
+                >
+                  Excluir
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <label className="flex flex-col gap-2">

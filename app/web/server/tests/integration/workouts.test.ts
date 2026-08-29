@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { createUser, createWorkout } from '../helpers/factories'
+import { createSession, createUser, createWorkout } from '../helpers/factories'
 import { bearer } from '../helpers/auth'
 import { api } from '../helpers/request'
 import { owner } from '../helpers/db'
@@ -109,6 +109,36 @@ describe('soft delete', () => {
       .where({ id })
       .first()
     expect(row.deleted_at).not.toBeNull()
+  })
+
+  test('a workout used by a session cannot be deleted', async () => {
+    const coach = await createUser({ isCoach: true })
+    const headers = await bearer(coach)
+    const { workoutId } = await createSession()
+
+    const res = await api('DELETE', `/workouts/${workoutId}`, { headers })
+    expect(res.status).toBe(409)
+
+    const row = await owner('workouts')
+      .select('deleted_at')
+      .where({ id: workoutId })
+      .first()
+    expect(row.deleted_at).toBeNull()
+  })
+
+  test('a workout is deletable once its session is removed', async () => {
+    const coach = await createUser({ isCoach: true })
+    const headers = await bearer(coach)
+    const session = await createSession()
+
+    await owner('workout_sessions')
+      .where({ id: session.id })
+      .update({ deleted_at: owner.fn.now() })
+
+    const res = await api('DELETE', `/workouts/${session.workoutId}`, {
+      headers,
+    })
+    expect(res.status).toBe(204)
   })
 
   test('a member cannot delete a workout', async () => {

@@ -11,7 +11,6 @@ import {
   longDate,
   parseWod,
   sessionsOn,
-  weekDayOf,
 } from '@eazybox/shared'
 import type { WorkoutSessionWithStats } from '@eazybox/shared'
 import { useBox } from '@/box-context'
@@ -24,7 +23,7 @@ import { Page } from '@/components/ui-x/Page'
 import { Panel } from '@/components/ui-x/Panel'
 import { PickerDialog } from '@/components/ui-x/PickerDialog'
 import { StatCard } from '@/components/ui-x/StatCard'
-import { apiFetch } from '@/lib/api'
+import { publishDay, slotsToPublish } from '@/lib/publish'
 import {
   byTimeSlot,
   capacityOf,
@@ -73,20 +72,10 @@ export default function Dashboard() {
   )
 
   async function publishTomorrow(workoutId: string) {
-    const weekDay = weekDayOf(tomorrowDate)
-    await Promise.all(
-      schedule
-        .filter((slot) => slot.weekDay === weekDay)
-        .map((slot) =>
-          apiFetch('/workout-sessions', {
-            method: 'POST',
-            body: JSON.stringify({
-              workoutScheduleId: slot.id,
-              workoutId,
-              sessionDate: tomorrow,
-            }),
-          }).catch(() => undefined)
-        )
+    await publishDay(
+      slotsToPublish(schedule, tomorrows, tomorrow),
+      tomorrow,
+      workoutId
     )
     await reload.sessions()
   }

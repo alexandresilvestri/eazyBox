@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router'
 import {
   addDays,
   checkinState,
@@ -39,23 +40,35 @@ import { Panel } from '@/components/ui-x/Panel'
 import { PickerDialog } from '@/components/ui-x/PickerDialog'
 import { Stepper } from '@/components/ui-x/Stepper'
 import { apiFetch } from '@/lib/api'
+import { publishDay, slotsToPublish } from '@/lib/publish'
 import { byId } from '@/lib/reports'
 import { useApi } from '@/lib/use-api'
 
 const NO_ATTENDEES: SessionAttendee[] = []
 
+const plural = (count: number, one: string, many: string) =>
+  count === 1 ? `1 ${one}` : `${count} ${many}`
+
 export default function Aulas() {
-  const { sessions, workouts, users, reload } = useBox()
+  const { sessions, schedule, workouts, users, reload } = useBox()
   const now = useMemo(() => new Date(), [])
   const [day, setDay] = useState(() => isoDate(new Date()))
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [assigning, setAssigning] = useState(false)
+  const [publishing, setPublishing] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const userById = useMemo(() => byId(users), [users])
   const workoutById = useMemo(() => byId(workouts), [workouts])
   const daySessions = useMemo(() => sessionsOn(sessions, day), [sessions, day])
+  const toPublish = slotsToPublish(schedule, daySessions, day)
+  const weekDayLabel = WEEK_DAY_LABEL[weekDayOf(dayDate(day))]
+  const canPublish = toPublish.length > 0 && workouts.length > 0
+  const workoutOptions = workouts.map((workout) => ({
+    value: workout.id,
+    label: parseWod(workout.wod).name,
+  }))
   const selected =
     daySessions.find((session) => session.id === selectedId) ?? daySessions[0]
 
@@ -71,6 +84,17 @@ export default function Aulas() {
     (user) => user.isActive && !confirmedIds.has(user.id)
   )
   const closed = selected ? checkinState(selected, now) === 'closed' : true
+
+  async function publishSessions(workoutId: string) {
+    setError(null)
+    const failed = await publishDay(toPublish, day, workoutId)
+    if (failed > 0) {
+      setError(
+        `Não foi possível publicar ${plural(failed, 'aula', 'aulas')} do dia`
+      )
+    }
+    await reload.sessions()
+  }
 
   async function assignWorkout(workoutId: string) {
     setError(null)
@@ -145,8 +169,7 @@ export default function Aulas() {
               <ChevronLeftIcon />
             </IconButton>
             <span className="px-3 text-md font-semibold">
-              {WEEK_DAY_LABEL[weekDayOf(dayDate(day))]},{' '}
-              {dayAndMonth(dayDate(day))}
+              {weekDayLabel}, {dayAndMonth(dayDate(day))}
             </span>
             <IconButton
               aria-label="Dia seguinte"
@@ -155,6 +178,13 @@ export default function Aulas() {
               <ChevronRightIcon />
             </IconButton>
           </div>
+          <Button
+            variant="outline"
+            disabled={!canPublish}
+            onClick={() => setPublishing(true)}
+          >
+            Publicar aulas do dia
+          </Button>
           <Button
             disabled={daySessions.length === 0}
             onClick={() => setAssigning(true)}
@@ -167,12 +197,31 @@ export default function Aulas() {
       {error ? <p className="text-base text-accent-text">{error}</p> : null}
 
       {daySessions.length === 0 ? (
-        <Panel className="gap-1.5">
+        <Panel className="items-start gap-1.5">
           <p className="text-xl font-bold">Nenhuma aula nesse dia</p>
-          <p className="text-base text-ink-2">
-            Publique as aulas do dia a partir do Dashboard ou da grade de
-            horários.
-          </p>
+          {toPublish.length > 0 ? (
+            <>
+              <p className="text-base text-ink-2">
+                A grade tem {plural(toPublish.length, 'horário', 'horários')} em{' '}
+                {weekDayLabel}. Publique para abrir os check-ins.
+              </p>
+              <Button
+                className="mt-3"
+                disabled={!canPublish}
+                onClick={() => setPublishing(true)}
+              >
+                Publicar aulas do dia
+              </Button>
+            </>
+          ) : (
+            <p className="text-base text-ink-2">
+              Não há horários na grade para {weekDayLabel}. Crie um em{' '}
+              <Link to="/horarios" className="text-accent-text underline">
+                Horários
+              </Link>
+              .
+            </p>
+          )}
         </Panel>
       ) : (
         <div className="grid min-h-0 flex-1 grid-cols-[1fr_420px] gap-4">
@@ -233,8 +282,7 @@ export default function Aulas() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="section-label">
-                    {WEEK_DAY_LABEL[weekDayOf(dayDate(day))]} ·{' '}
-                    {hourLabel(selected.time)}
+                    {weekDayLabel} · {hourLabel(selected.time)}
                   </p>
                   <p className="mt-1.5 flex items-baseline gap-1.5">
                     <span className="font-display text-heading tracking-heading">
@@ -319,14 +367,22 @@ export default function Aulas() {
       )}
 
       <PickerDialog
+        open={publishing}
+        title={`Publicar aulas de ${dayAndMonth(dayDate(day))}`}
+        description={`Cria ${plural(toPublish.length, 'aula', 'aulas')} do dia a partir da grade de horários, com o WOD escolhido.`}
+        placeholder="Escolha o WOD"
+        options={workoutOptions}
+        confirmLabel="Publicar"
+        onOpenChange={setPublishing}
+        onConfirm={publishSessions}
+      />
+
+      <PickerDialog
         open={assigning}
         title={`Atribuir WOD às aulas de ${dayAndMonth(dayDate(day))}`}
         description={`Troca o treino das ${daySessions.length} aulas do dia.`}
         placeholder="Escolha o WOD"
-        options={workouts.map((workout) => ({
-          value: workout.id,
-          label: parseWod(workout.wod).name,
-        }))}
+        options={workoutOptions}
         confirmLabel="Atribuir"
         onOpenChange={setAssigning}
         onConfirm={assignWorkout}

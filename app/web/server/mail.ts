@@ -1,4 +1,4 @@
-const RESEND_ENDPOINT = 'https://api.resend.com/emails'
+export const RESEND_ENDPOINT = 'https://api.resend.com/emails'
 const RESET_SUBJECT = 'Redefinir sua senha no EazyBox'
 
 const resetBody = (link: string) => `

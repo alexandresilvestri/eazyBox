@@ -44,7 +44,7 @@ format-check:
 verify: typecheck lint test
 
 test:
-	bun run --filter @eazybox/web test
+	bun run test
 
 test-watch:
 	bun run --filter @eazybox/web test:watch

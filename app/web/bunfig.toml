@@ -3,4 +3,8 @@ plugins = ["bun-plugin-tailwind"]
 
 [test]
 root = "./server"
-preload = ["./server/tests/setup.ts"]
+preload = ["./server/tests/helpers/env.ts", "./server/tests/setup.ts"]
+coverage = true
+coverageSkipTestFiles = true
+coverageReporter = ["text"]
+coveragePathIgnorePatterns = ["server/tests/**"]

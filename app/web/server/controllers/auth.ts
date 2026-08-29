@@ -27,6 +27,8 @@ import type { AppEnv } from '../context'
 
 type Tokens = { accessToken: string; refreshToken: string }
 
+const SESSION_EXPIRED = 'Sessão inválida ou expirada'
+
 const respondWithTokens = (c: Context<AppEnv>, tokens: Tokens) => {
   if (c.get('transport') === 'token') {
     return c.json(tokens)
@@ -87,7 +89,7 @@ export const refresh = async (c: Context<AppEnv>) => {
     return respondWithTokens(c, await authService.refresh(token))
   } catch (err) {
     if (err instanceof InvalidRefreshToken) {
-      return c.json({ error: 'Sessão inválida ou expirada' }, 401)
+      return c.json({ error: SESSION_EXPIRED }, 401)
     }
     if (err instanceof InactiveUser) {
       return c.json({ error: 'Conta desativada' }, 403)
@@ -162,11 +164,19 @@ export const changePassword = async (c: Context<AppEnv>) => {
       return c.json({ error: 'Senha atual incorreta' }, 403)
     }
     if (err instanceof UserNotFound) {
-      return c.json({ error: 'Sessão inválida ou expirada' }, 401)
+      return c.json({ error: SESSION_EXPIRED }, 401)
     }
     throw err
   }
 }
 
-export const me = async (c: Context<AppEnv>) =>
-  c.json(await c.get('services').users.findById(c.get('auth').userId))
+export const me = async (c: Context<AppEnv>) => {
+  try {
+    return c.json(await c.get('services').users.findById(c.get('auth').userId))
+  } catch (err) {
+    if (err instanceof UserNotFound) {
+      return c.json({ error: SESSION_EXPIRED }, 401)
+    }
+    throw err
+  }
+}

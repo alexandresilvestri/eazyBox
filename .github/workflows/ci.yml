@@ -37,7 +37,6 @@ jobs:
 
     env:
       JWT_SECRET: ci-secret
-      REDIS_URL: redis://localhost:6379
       DATABASE_TEST_URL: postgres://postgres@localhost:5432/eazybox_test
 
     steps:
@@ -56,9 +55,8 @@ jobs:
         run: bun run lint
         working-directory: app/web
 
-      - name: Server tests
+      - name: Tests
         run: bun run test
-        working-directory: app/web
 
   semgrep:
     if: github.event_name != 'push'

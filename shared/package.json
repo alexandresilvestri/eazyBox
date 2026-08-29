@@ -5,6 +5,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "test": "TZ=UTC bun test && TZ=America/Sao_Paulo bun test",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

@@ -45,7 +45,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "check:peers": "bun scripts/check-peer-ranges.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "TZ=UTC bun test && TZ=America/Sao_Paulo bun test"
   },
   "private": true
 }

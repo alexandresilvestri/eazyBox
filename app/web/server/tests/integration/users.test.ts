@@ -4,6 +4,8 @@ import { bearer, tokenFor } from '../helpers/auth'
 import { api } from '../helpers/request'
 import { owner } from '../helpers/db'
 
+const UNKNOWN_ID = '00000000-0000-0000-0000-000000000000'
+
 const validPayload = {
   email: 'new@test.com',
   password: 'password123',
@@ -251,6 +253,33 @@ describe('role and status flags', () => {
     const res = await api('PATCH', `/users/${member.id}`, {
       headers: await bearer(coach),
       body: { isActive: false },
+    })
+    expect(res.status).toBe(404)
+  })
+})
+
+describe('error arms', () => {
+  test('an invalid payload on update returns 400 with issues', async () => {
+    const admin = await createUser({ isAdmin: true })
+    const member = await createUser()
+    const res = await api('PATCH', `/users/${member.id}`, {
+      headers: await bearer(admin),
+      body: { email: 'not-an-email' },
+    })
+    expect(res.status).toBe(400)
+    expect(res.body.issues.length).toBeGreaterThan(0)
+  })
+
+  test('a malformed json body on create returns 400', async () => {
+    const admin = await createUser({ isAdmin: true })
+    const res = await api('POST', '/users', { headers: await bearer(admin) })
+    expect(res.status).toBe(400)
+  })
+
+  test('deleting an unknown user returns 404', async () => {
+    const admin = await createUser({ isAdmin: true })
+    const res = await api('DELETE', `/users/${UNKNOWN_ID}`, {
+      headers: await bearer(admin),
     })
     expect(res.status).toBe(404)
   })

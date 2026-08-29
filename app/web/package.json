@@ -9,7 +9,7 @@
     "migrate": "bunx knex migrate:latest --knexfile server/db/knexfile.ts",
     "migrate:rollback": "bunx knex migrate:rollback --knexfile server/db/knexfile.ts",
     "migrate:make": "bunx knex migrate:make --knexfile server/db/knexfile.ts -x ts",
-    "test": "bun test --parallel=1",
+    "test": "bun test --parallel=1 && bun run test:client",
     "test:watch": "bun test --parallel=1 --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
@@ -17,7 +17,8 @@
     "format": "bunx prettier --write .",
     "format:check": "bunx prettier --check .",
     "admin:create": "bun server/scripts/create-admin.ts",
-    "db:seed": "bun server/scripts/seed.ts"
+    "db:seed": "bun server/scripts/seed.ts",
+    "test:client": "cd client && TZ=UTC bun test && TZ=America/Sao_Paulo bun test"
   },
   "dependencies": {
     "@eazybox/shared": "workspace:*",

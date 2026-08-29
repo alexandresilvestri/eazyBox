@@ -5,6 +5,9 @@ import {
   owner,
   truncateAll,
 } from './helpers/db'
+import { clearMailbox, stubMail } from './helpers/mail'
+
+stubMail()
 
 beforeAll(async () => {
   await createTestDatabase()
@@ -14,4 +17,5 @@ beforeAll(async () => {
 afterEach(async () => {
   await truncateAll()
   await clearCache()
+  clearMailbox()
 })

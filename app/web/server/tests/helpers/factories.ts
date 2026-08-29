@@ -112,3 +112,14 @@ export async function createAnnouncement(body = 'Aviso da box') {
   const [row] = await owner('announcements').insert({ body }).returning('id')
   return row.id as string
 }
+
+export async function createCheckin(
+  userId: string,
+  workoutSessionId: string,
+  undone = false
+) {
+  const [row] = await owner('checkins')
+    .insert({ user_id: userId, workout_session_id: workoutSessionId, undone })
+    .returning('id')
+  return row.id as string
+}

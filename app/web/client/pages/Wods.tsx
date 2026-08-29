@@ -56,12 +56,16 @@ export default function Wods() {
     draft.skill !== stored.skill ||
     draft.wod !== stored.wod
 
+  function edit(workout: Workout | null) {
+    setSelectedId(workout?.id ?? null)
+    setDraft(draftOf(workout))
+    setError(null)
+  }
+
   function select(workout: Workout) {
     if (workout.id === selectedId) return
     if (dirty && !confirm('Descartar as alterações não salvas?')) return
-    setSelectedId(workout.id)
-    setDraft(draftOf(workout))
-    setError(null)
+    edit(workout)
   }
 
   async function save(id: string | null) {
@@ -94,8 +98,7 @@ export default function Wods() {
     setError(null)
     try {
       await apiFetch(`/workouts/${selectedId}`, { method: 'DELETE' })
-      setSelectedId(null)
-      setDraft(draftOf(null))
+      edit(null)
       await reload.workouts()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível excluir')
@@ -121,9 +124,7 @@ export default function Wods() {
               if (dirty && !confirm('Descartar as alterações não salvas?')) {
                 return
               }
-              setSelectedId(null)
-              setDraft(draftOf(null))
-              setError(null)
+              edit(null)
             }}
           >
             Novo WOD

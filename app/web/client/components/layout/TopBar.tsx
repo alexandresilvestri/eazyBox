@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router'
-import { fullName, initials } from '@eazybox/shared'
 import type { User } from '@eazybox/shared'
 import { navFor } from '@/components/layout/nav-items'
+import { UserMenu } from '@/components/layout/UserMenu'
 import { Mark } from '@/components/ui-x/Mark'
 import { cn } from '@/lib/utils'
 
@@ -39,19 +39,7 @@ export function TopBar({
         ))}
       </nav>
 
-      <div className="flex shrink-0 items-center gap-3">
-        <span className="text-sm text-ink-3">
-          {user.isAdmin ? 'Admin' : 'Coach'}
-        </span>
-        <button
-          type="button"
-          onClick={onLogout}
-          title={`Sair · ${fullName(user.firstName, user.lastName)}`}
-          className="grid size-9 place-items-center rounded-full border border-hairline bg-panel text-xs font-bold text-ink-1 transition-colors hover:border-hairline-strong"
-        >
-          {initials(user.firstName, user.lastName)}
-        </button>
-      </div>
+      <UserMenu user={user} onLogout={onLogout} />
     </header>
   )
 }

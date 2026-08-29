@@ -1,10 +1,11 @@
 import type { Context } from 'hono'
 import { createWorkoutSchema, updateWorkoutSchema } from '@eazybox/shared'
-import { WorkoutNotFound } from '../errors'
+import { WorkoutInUse, WorkoutNotFound } from '../errors'
 import { INVALID_PAYLOAD } from './messages'
 import type { AppEnv } from '../context'
 
 const NOT_FOUND = 'Treino não encontrado'
+const IN_USE = 'Treino em uso em aulas agendadas'
 
 export const list = async (c: Context<AppEnv>) =>
   c.json(await c.get('services').workouts.list())
@@ -54,6 +55,9 @@ export const remove = async (c: Context<AppEnv, '/:id'>) => {
     await c.get('services').workouts.remove(c.req.param('id'))
     return c.body(null, 204)
   } catch (err) {
+    if (err instanceof WorkoutInUse) {
+      return c.json({ error: IN_USE }, 409)
+    }
     if (err instanceof WorkoutNotFound) {
       return c.json({ error: NOT_FOUND }, 404)
     }

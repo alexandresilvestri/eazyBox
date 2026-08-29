@@ -53,6 +53,14 @@ export class WorkoutSessionModel {
       .first()
   }
 
+  findAnyByWorkout(workoutId: string) {
+    return this.db<WorkoutSession>('workout_sessions')
+      .select('id')
+      .where({ workoutId })
+      .whereNull('deletedAt')
+      .first()
+  }
+
   async insert(input: Partial<WorkoutSession>) {
     const [row] = await this.db('workout_sessions')
       .insert(input)

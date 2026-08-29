@@ -26,6 +26,10 @@ export class WorkoutNotFound extends Error {
   override name = 'WorkoutNotFound'
 }
 
+export class WorkoutInUse extends Error {
+  override name = 'WorkoutInUse'
+}
+
 export class WorkoutScheduleNotFound extends Error {
   override name = 'WorkoutScheduleNotFound'
 }

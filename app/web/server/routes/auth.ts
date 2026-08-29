@@ -11,6 +11,14 @@ export const createAuthRoutes = (transport: Transport) => {
   authRoutes.post('/login', authController.login)
   authRoutes.post('/refresh', authController.refresh)
   authRoutes.post('/logout', authController.logout)
+  authRoutes.post('/forgot-password', authController.forgotPassword)
+  authRoutes.post('/reset-password', authController.resetPassword)
+  authRoutes.post(
+    '/change-password',
+    authenticate(),
+    withRlsContext(),
+    authController.changePassword
+  )
   authRoutes.get('/me', authenticate(), withRlsContext(), authController.me)
 
   return authRoutes

@@ -22,6 +22,10 @@ const IDENTITY_QUERY = `
   from app.find_identity(?)
 `
 
+const SET_PASSWORD_QUERY = `
+  select app.set_password(?, ?) as updated
+`
+
 export class AuthModel {
   constructor(private readonly db: Knex) {}
 
@@ -33,5 +37,10 @@ export class AuthModel {
   async findIdentity(id: string) {
     const result = await this.db.raw(IDENTITY_QUERY, [id])
     return result.rows[0] as IdentityRow | undefined
+  }
+
+  async setPassword(id: string, digest: string) {
+    const result = await this.db.raw(SET_PASSWORD_QUERY, [id, digest])
+    return result.rows[0]?.updated === true
   }
 }

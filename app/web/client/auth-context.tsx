@@ -13,6 +13,7 @@ type AuthState = {
   loading: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
+  changePassword: (currentPassword: string, password: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthState | null>(null)
@@ -48,8 +49,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
+  async function changePassword(currentPassword: string, password: string) {
+    await apiFetch('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, password }),
+    })
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, logout, changePassword }}
+    >
       {children}
     </AuthContext.Provider>
   )

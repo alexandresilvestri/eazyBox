@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Constants from "expo-constants";
+import { useRouter } from "expo-router";
 import { initials, isActive } from "@eazybox/shared";
 
 import { Avatar } from "@/components/ui/avatar";
@@ -18,6 +19,7 @@ import { usePref } from "@/lib/prefs";
 import { streakOf } from "@/lib/sessions";
 
 export default function PerfilScreen() {
+  const router = useRouter();
   const { user, logout } = useAuth();
   const { checkins, trained } = useBox();
   const classReminder = usePref("classReminder", true);
@@ -61,7 +63,12 @@ export default function PerfilScreen() {
         <SectionLabel>Conta</SectionLabel>
         <View style={styles.group}>
           <ListRow icon={<UserIcon />} label="Editar perfil" />
-          <ListRow icon={<LockIcon />} label="Alterar senha" divided />
+          <ListRow
+            icon={<LockIcon />}
+            label="Alterar senha"
+            divided
+            onPress={() => router.push("/alterar-senha")}
+          />
         </View>
       </Section>
 

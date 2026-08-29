@@ -22,6 +22,14 @@ export class InvalidRefreshToken extends Error {
   override name = 'InvalidRefreshToken'
 }
 
+export class InvalidResetToken extends Error {
+  override name = 'InvalidResetToken'
+}
+
+export class WrongPassword extends Error {
+  override name = 'WrongPassword'
+}
+
 export class WorkoutNotFound extends Error {
   override name = 'WorkoutNotFound'
 }

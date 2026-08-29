@@ -1,11 +1,20 @@
 import { setCookie, deleteCookie, getCookie } from 'hono/cookie'
 import type { Context } from 'hono'
-import { loginSchema, refreshSchema } from '@eazybox/shared'
+import {
+  changePasswordSchema,
+  forgotPasswordSchema,
+  loginSchema,
+  refreshSchema,
+  resetPasswordSchema,
+} from '@eazybox/shared'
 import { authService } from '../services'
 import {
   InactiveUser,
   InvalidCredentials,
   InvalidRefreshToken,
+  InvalidResetToken,
+  UserNotFound,
+  WrongPassword,
 } from '../errors'
 import {
   ACCESS_TTL_SECONDS,
@@ -95,6 +104,68 @@ export const logout = async (c: Context<AppEnv>) => {
   deleteCookie(c, SESSION_COOKIE, { path: '/' })
   deleteCookie(c, REFRESH_COOKIE, { path: '/' })
   return c.body(null, 204)
+}
+
+export const forgotPassword = async (c: Context<AppEnv>) => {
+  const parsed = forgotPasswordSchema.safeParse(
+    await c.req.json().catch(() => null)
+  )
+  if (!parsed.success) {
+    return c.json({ error: INVALID_PAYLOAD, issues: parsed.error.issues }, 400)
+  }
+
+  await authService.forgotPassword(parsed.data.email)
+  return c.body(null, 204)
+}
+
+export const resetPassword = async (c: Context<AppEnv>) => {
+  const parsed = resetPasswordSchema.safeParse(
+    await c.req.json().catch(() => null)
+  )
+  if (!parsed.success) {
+    return c.json({ error: INVALID_PAYLOAD, issues: parsed.error.issues }, 400)
+  }
+
+  try {
+    await authService.resetPassword(parsed.data.token, parsed.data.password)
+    return c.body(null, 204)
+  } catch (err) {
+    if (err instanceof InvalidResetToken) {
+      return c.json({ error: 'Link inválido ou expirado' }, 400)
+    }
+    throw err
+  }
+}
+
+export const changePassword = async (c: Context<AppEnv>) => {
+  const parsed = changePasswordSchema.safeParse(
+    await c.req.json().catch(() => null)
+  )
+  if (!parsed.success) {
+    return c.json({ error: INVALID_PAYLOAD, issues: parsed.error.issues }, 400)
+  }
+
+  try {
+    const { email } = await c
+      .get('services')
+      .users.findById(c.get('auth').userId)
+    return respondWithTokens(
+      c,
+      await authService.changePassword(
+        email,
+        parsed.data.currentPassword,
+        parsed.data.password
+      )
+    )
+  } catch (err) {
+    if (err instanceof WrongPassword) {
+      return c.json({ error: 'Senha atual incorreta' }, 403)
+    }
+    if (err instanceof UserNotFound) {
+      return c.json({ error: 'Sessão inválida ou expirada' }, 401)
+    }
+    throw err
+  }
 }
 
 export const me = async (c: Context<AppEnv>) =>

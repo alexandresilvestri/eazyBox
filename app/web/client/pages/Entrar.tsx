@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate } from 'react-router'
+import { Link, Navigate } from 'react-router'
 import { CHECKIN_WINDOW_HOURS, DEFAULT_CAPACITY } from '@eazybox/shared'
 import { useAuth } from '@/auth-context'
 import { Button } from '@/components/ui/button'
@@ -112,9 +112,12 @@ export default function Entrar() {
           <span className="text-base text-ink-3">
             Sessão renovada automaticamente.
           </span>
-          <span className="text-base font-semibold text-ink-1">
+          <Link
+            to="/esqueci-senha"
+            className="text-base font-semibold text-ink-1 underline decoration-hairline-strong"
+          >
             Esqueci a senha
-          </span>
+          </Link>
         </div>
       </form>
     </div>

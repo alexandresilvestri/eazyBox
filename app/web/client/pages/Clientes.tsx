@@ -50,6 +50,7 @@ export default function Clientes() {
   const [draft, setDraft] = useState(EMPTY_DRAFT)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [sentTo, setSentTo] = useState<string[]>([])
 
   const today = useMemo(() => isoDate(new Date()), [])
 
@@ -108,6 +109,21 @@ export default function Clientes() {
     }
   }
 
+  async function sendPasswordReset(user: User) {
+    setError(null)
+    try {
+      await apiFetch('/auth/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify({ email: user.email }),
+      })
+      setSentTo((current) => [...current, user.id])
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Não foi possível enviar o link'
+      )
+    }
+  }
+
   return (
     <Page
       eyebrow={`${users.length} cadastrados · ${users.filter((user) => user.isActive).length} ativos`}
@@ -134,7 +150,7 @@ export default function Clientes() {
       ) : null}
 
       <HairlineTable
-        columns="1.2fr 1.4fr 110px 110px 130px 90px"
+        columns="1.2fr 1.4fr 110px 110px 130px 90px 110px"
         head={[
           'Nome',
           'E-mail',
@@ -142,6 +158,7 @@ export default function Clientes() {
           'Check-ins',
           'Último treino',
           'Status',
+          'Senha',
         ]}
         className="min-h-0 flex-1"
       >
@@ -176,6 +193,15 @@ export default function Clientes() {
                 <span className={user.isActive ? 'text-ink-2' : 'text-ink-3'}>
                   {user.isActive ? 'Ativo' : 'Inativo'}
                 </span>
+              </button>
+              <button
+                type="button"
+                disabled={sentTo.includes(user.id)}
+                onClick={() => void sendPasswordReset(user)}
+                title="Enviar link de redefinição por e-mail"
+                className="justify-self-start text-2xs font-bold tracking-bold text-ink-2 uppercase disabled:opacity-60"
+              >
+                {sentTo.includes(user.id) ? 'Enviado' : 'Redefinir'}
               </button>
             </HairlineRow>
           )

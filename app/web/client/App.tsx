@@ -8,7 +8,9 @@ import Clientes from '@/pages/Clientes'
 import Coaches from '@/pages/Coaches'
 import Dashboard from '@/pages/Dashboard'
 import Entrar from '@/pages/Entrar'
+import EsqueciSenha from '@/pages/EsqueciSenha'
 import Horarios from '@/pages/Horarios'
+import RedefinirSenha from '@/pages/RedefinirSenha'
 import Wods from '@/pages/Wods'
 
 function RequireAdmin() {
@@ -22,6 +24,8 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/entrar" element={<Entrar />} />
+          <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+          <Route path="/redefinir-senha" element={<RedefinirSenha />} />
           <Route element={<Shell />}>
             <Route index element={<Dashboard />} />
             <Route path="wods" element={<Wods />} />

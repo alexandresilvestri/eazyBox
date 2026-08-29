@@ -7,10 +7,10 @@ import {
   Text,
   View,
 } from "react-native";
-import { Redirect } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { PrimaryButton } from "@/components/ui/buttons";
+import { GhostButton, PrimaryButton } from "@/components/ui/buttons";
 import { Field } from "@/components/ui/field";
 import { colors, layout, text } from "@/constants/theme";
 import { ApiError } from "@/lib/api";
@@ -19,6 +19,7 @@ import { useAuth } from "@/lib/auth";
 const mark = require("@/assets/images/eazybox-mark.png");
 
 export default function LoginScreen() {
+  const router = useRouter();
   const { user, loading, login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -93,8 +94,12 @@ export default function LoginScreen() {
                 submitting || email.length === 0 || password.length === 0
               }
             />
+            <GhostButton
+              label="Esqueci a senha"
+              onPress={() => router.push("/esqueci-senha")}
+            />
             <Text style={styles.footerNote}>
-              Sua conta é criada pela box. Esqueceu a senha? Fale com seu coach.
+              Sua conta é criada pela box.
             </Text>
           </View>
         </View>

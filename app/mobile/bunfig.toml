@@ -1,0 +1,6 @@
+[test]
+root = "./tests"
+coverage = true
+coverageSkipTestFiles = true
+coveragePathIgnorePatterns = ["tests/**"]
+coverageReporter = ["text"]

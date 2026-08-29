@@ -1,6 +1,6 @@
 import Knex from 'knex'
-import { redis } from '../../redis'
 import { OWNER_ADMIN_URL, TEST_DB_NAME } from './env'
+import { redis } from '../../redis'
 
 const MIGRATIONS_DIR = new URL('../../db/migrations', import.meta.url).pathname
 

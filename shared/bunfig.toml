@@ -1,0 +1,6 @@
+[test]
+coverage = true
+coverageSkipTestFiles = true
+coveragePathIgnorePatterns = ["tests/**"]
+coverageReporter = ["text"]
+coverageThreshold = { lines = 0.9, functions = 0.9 }

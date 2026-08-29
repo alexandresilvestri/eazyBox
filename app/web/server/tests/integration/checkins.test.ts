@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { createSession, createUser } from '../helpers/factories'
+import { createCheckin, createSession, createUser } from '../helpers/factories'
 import { bearer } from '../helpers/auth'
 import { api } from '../helpers/request'
 import { owner } from '../helpers/db'
@@ -152,5 +152,58 @@ describe('list isolation', () => {
 
     const res = await api('GET', '/checkins', { headers: await bearer(admin) })
     expect(res.body).toHaveLength(1)
+  })
+})
+
+describe('rules the API leaves to the client', () => {
+  test('a member can take the last seat of a session', async () => {
+    const member = await createUser()
+    const session = await createSession('2026-08-24', { capacity: 1 })
+    const res = await api('POST', '/checkins', {
+      headers: await bearer(member),
+      body: { workoutSessionId: session.id },
+    })
+    expect(res.status).toBe(201)
+  })
+
+  test('capacity is not enforced server side, so a full session still accepts a check-in', async () => {
+    const first = await createUser()
+    const second = await createUser()
+    const session = await createSession('2026-08-24', { capacity: 1 })
+    await createCheckin(first.id, session.id)
+
+    const res = await api('POST', '/checkins', {
+      headers: await bearer(second),
+      body: { workoutSessionId: session.id },
+    })
+    expect(res.status).toBe(201)
+
+    const stats = await api('GET', '/workout-sessions', {
+      headers: await bearer(second),
+    })
+    const row = stats.body.find(
+      (entry: { id: string }) => entry.id === session.id
+    )
+    expect(row.occupied).toBeGreaterThan(row.capacity)
+  })
+
+  test('the check-in window is not enforced server side, so a long past session still accepts one', async () => {
+    const member = await createUser()
+    const session = await createSession('2020-01-06')
+    const res = await api('POST', '/checkins', {
+      headers: await bearer(member),
+      body: { workoutSessionId: session.id },
+    })
+    expect(res.status).toBe(201)
+  })
+
+  test('the check-in window is not enforced server side, so a far future session still accepts one', async () => {
+    const member = await createUser()
+    const session = await createSession('2099-12-28')
+    const res = await api('POST', '/checkins', {
+      headers: await bearer(member),
+      body: { workoutSessionId: session.id },
+    })
+    expect(res.status).toBe(201)
   })
 })

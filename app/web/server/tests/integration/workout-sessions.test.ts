@@ -361,6 +361,28 @@ describe('update and delete', () => {
     ).toBe(404)
   })
 
+  test('the same slot and date can be rescheduled after a soft delete', async () => {
+    const coach = await createUser({ isCoach: true })
+    const headers = await bearer(coach)
+    const slot = await createSlot('tuesday', '07:00')
+    const workoutId = await createWorkout()
+    const body = {
+      workoutScheduleId: slot.id,
+      workoutId,
+      sessionDate: '2026-08-25',
+    }
+
+    const created = await api('POST', '/workout-sessions', { headers, body })
+    expect(created.status).toBe(201)
+    expect(
+      (await api('DELETE', `/workout-sessions/${created.body.id}`, { headers }))
+        .status
+    ).toBe(204)
+
+    const recreated = await api('POST', '/workout-sessions', { headers, body })
+    expect(recreated.status).toBe(201)
+  })
+
   test('a member cannot delete a session', async () => {
     const member = await createUser()
     const session = await createSession()
@@ -368,5 +390,65 @@ describe('update and delete', () => {
       headers: await bearer(member),
     })
     expect(res.status).toBe(403)
+  })
+})
+
+describe('error arms', () => {
+  test('reading an unknown session returns 404', async () => {
+    const member = await createUser()
+    const res = await api('GET', `/workout-sessions/${UNKNOWN_ID}`, {
+      headers: await bearer(member),
+    })
+    expect(res.status).toBe(404)
+  })
+
+  test('an invalid payload on update returns 400 with issues', async () => {
+    const coach = await createUser({ isCoach: true })
+    const session = await createSession()
+    const res = await api('PATCH', `/workout-sessions/${session.id}`, {
+      headers: await bearer(coach),
+      body: { workoutId: 'not-a-uuid' },
+    })
+    expect(res.status).toBe(400)
+    expect(res.body.issues.length).toBeGreaterThan(0)
+  })
+
+  test('updating an unknown session returns 404', async () => {
+    const coach = await createUser({ isCoach: true })
+    const workoutId = await createWorkout('Murph')
+    const res = await api('PATCH', `/workout-sessions/${UNKNOWN_ID}`, {
+      headers: await bearer(coach),
+      body: { workoutId },
+    })
+    expect(res.status).toBe(404)
+  })
+
+  test('deleting an unknown session returns 404', async () => {
+    const coach = await createUser({ isCoach: true })
+    const res = await api('DELETE', `/workout-sessions/${UNKNOWN_ID}`, {
+      headers: await bearer(coach),
+    })
+    expect(res.status).toBe(404)
+  })
+
+  test('an invalid attendee payload returns 400 with issues', async () => {
+    const coach = await createUser({ isCoach: true })
+    const session = await createSession()
+    const res = await api('POST', `/workout-sessions/${session.id}/attendees`, {
+      headers: await bearer(coach),
+      body: { userId: 'not-a-uuid' },
+    })
+    expect(res.status).toBe(400)
+    expect(res.body.issues.length).toBeGreaterThan(0)
+  })
+
+  test('an invalid create payload returns 400 with issues', async () => {
+    const coach = await createUser({ isCoach: true })
+    const res = await api('POST', '/workout-sessions', {
+      headers: await bearer(coach),
+      body: { workoutScheduleId: 'nope', workoutId: 'nope' },
+    })
+    expect(res.status).toBe(400)
+    expect(res.body.issues.length).toBeGreaterThan(0)
   })
 })

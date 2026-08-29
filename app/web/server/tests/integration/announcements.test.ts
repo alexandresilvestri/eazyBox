@@ -84,3 +84,24 @@ describe('write access', () => {
     )
   })
 })
+
+describe('error arms', () => {
+  test('an invalid payload on update returns 400 with issues', async () => {
+    const coach = await createUser({ isCoach: true })
+    const id = await createAnnouncement()
+    const res = await api('PATCH', `/announcements/${id}`, {
+      headers: await bearer(coach),
+      body: { body: '' },
+    })
+    expect(res.status).toBe(400)
+    expect(res.body.issues.length).toBeGreaterThan(0)
+  })
+
+  test('deleting an unknown announcement returns 404', async () => {
+    const coach = await createUser({ isCoach: true })
+    const res = await api('DELETE', `/announcements/${UNKNOWN_ID}`, {
+      headers: await bearer(coach),
+    })
+    expect(res.status).toBe(404)
+  })
+})

@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "dev": "bun run --filter @eazybox/web dev",
-    "typecheck": "bun run --filter '*' typecheck"
+    "typecheck": "bun run --filter '*' typecheck",
+    "test": "bun run --filter '*' test"
   },
   "devDependencies": {
     "typescript": "^6.0.3",

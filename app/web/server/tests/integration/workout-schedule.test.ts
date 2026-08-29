@@ -3,6 +3,8 @@ import { createSlot, createUser } from '../helpers/factories'
 import { bearer } from '../helpers/auth'
 import { api } from '../helpers/request'
 
+const UNKNOWN_ID = '00000000-0000-0000-0000-000000000000'
+
 const payload = { weekDay: 'monday', time: '06:00' }
 
 describe('read access', () => {
@@ -108,6 +110,29 @@ describe('write access', () => {
   })
 })
 
+describe('time round trip', () => {
+  test('a time read from the API can be sent straight back in a patch', async () => {
+    const admin = await createUser({ isAdmin: true })
+    const headers = await bearer(admin)
+    const created = await api('POST', '/workout-schedule', {
+      headers,
+      body: payload,
+    })
+    expect(created.status).toBe(201)
+
+    const fetched = await api('GET', `/workout-schedule/${created.body.id}`, {
+      headers,
+    })
+    expect(fetched.status).toBe(200)
+
+    const res = await api('PATCH', `/workout-schedule/${created.body.id}`, {
+      headers,
+      body: { time: fetched.body.time },
+    })
+    expect(res.status).toBe(200)
+  })
+})
+
 describe('capacity and coach', () => {
   test('a slot defaults to 20 vagas and no coach', async () => {
     const member = await createUser()
@@ -136,5 +161,55 @@ describe('capacity and coach', () => {
     expect(res.status).toBe(200)
     expect(res.body.coachId).toBeNull()
     expect(res.body.capacity).toBe(16)
+  })
+})
+
+describe('error arms', () => {
+  test('an invalid payload on update returns 400 with issues', async () => {
+    const admin = await createUser({ isAdmin: true })
+    const slot = await createSlot('tuesday', '07:00')
+    const res = await api('PATCH', `/workout-schedule/${slot.id}`, {
+      headers: await bearer(admin),
+      body: { time: '99:99' },
+    })
+    expect(res.status).toBe(400)
+    expect(res.body.issues.length).toBeGreaterThan(0)
+  })
+
+  test('updating an unknown slot returns 404', async () => {
+    const admin = await createUser({ isAdmin: true })
+    const res = await api('PATCH', `/workout-schedule/${UNKNOWN_ID}`, {
+      headers: await bearer(admin),
+      body: { time: '08:00' },
+    })
+    expect(res.status).toBe(404)
+  })
+
+  test('moving a slot onto an occupied day and time returns 409', async () => {
+    const admin = await createUser({ isAdmin: true })
+    const headers = await bearer(admin)
+    const taken = await createSlot('tuesday', '07:00')
+    const moving = await createSlot('tuesday', '08:00')
+    const res = await api('PATCH', `/workout-schedule/${moving.id}`, {
+      headers,
+      body: { weekDay: taken.weekDay, time: taken.time },
+    })
+    expect(res.status).toBe(409)
+  })
+
+  test('deleting an unknown slot returns 404', async () => {
+    const admin = await createUser({ isAdmin: true })
+    const res = await api('DELETE', `/workout-schedule/${UNKNOWN_ID}`, {
+      headers: await bearer(admin),
+    })
+    expect(res.status).toBe(404)
+  })
+
+  test('reading an unknown slot returns 404', async () => {
+    const member = await createUser()
+    const res = await api('GET', `/workout-schedule/${UNKNOWN_ID}`, {
+      headers: await bearer(member),
+    })
+    expect(res.status).toBe(404)
   })
 })

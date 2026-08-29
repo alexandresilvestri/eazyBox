@@ -3,6 +3,7 @@ import { createUser, TEST_PASSWORD } from '../helpers/factories'
 import { bearer } from '../helpers/auth'
 import { api } from '../helpers/request'
 import { redis } from '../../redis'
+import { failNextMail, lastMail, mailbox } from '../helpers/mail'
 
 const NEW_PASSWORD = 'brand-new-password'
 
@@ -151,5 +152,39 @@ describe('change-password', () => {
     const user = await createUser()
     const res = await change(await bearer(user), TEST_PASSWORD, 'short')
     expect(res.status).toBe(400)
+  })
+})
+
+describe('the reset email', () => {
+  test('emails a working reset link to the address that asked', async () => {
+    const user = await createUser()
+    expect((await forgot(user.email)).status).toBe(204)
+
+    expect(mailbox).toHaveLength(1)
+    const sent = lastMail()
+    expect(sent.to).toBe(user.email)
+    expect(sent.from).toBe(String(process.env.RESEND_FROM))
+    expect(sent.subject).toContain('senha')
+
+    const href = sent.html.match(/href="([^"]+)"/)?.[1]
+    expect(href).toContain(`${process.env.APP_URL}/redefinir-senha?token=`)
+
+    const token = new URL(href as string).searchParams.get('token') as string
+    expect((await reset(token)).status).toBe(204)
+    expect((await login(user.email, NEW_PASSWORD)).status).toBe(200)
+  })
+
+  test('sends nothing for an unknown address', async () => {
+    expect((await forgot('nobody@test.com')).status).toBe(204)
+    expect(mailbox).toHaveLength(0)
+  })
+
+  test('a mail provider failure is swallowed, so the caller cannot probe it', async () => {
+    const user = await createUser()
+    failNextMail(500)
+
+    const res = await forgot(user.email)
+    expect(res.status).toBe(204)
+    expect(await resetKeys()).toHaveLength(1)
   })
 })

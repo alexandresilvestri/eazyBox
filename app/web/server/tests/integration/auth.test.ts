@@ -128,4 +128,40 @@ describe('me', () => {
     const res = await api('GET', '/auth/me')
     expect(res.status).toBe(401)
   })
+
+  test('a still valid token for a soft deleted user is rejected, not a 500', async () => {
+    const user = await createUser()
+    const headers = await bearer(user)
+    await owner('users')
+      .where({ id: user.id })
+      .update({ deleted_at: owner.fn.now() })
+
+    const res = await api('GET', '/auth/me', { headers })
+    expect(res.status).toBe(401)
+  })
+})
+
+describe('deactivated and deleted accounts', () => {
+  test('a refresh token stops working once the account is deactivated', async () => {
+    const user = await createUser()
+    const body = { refreshToken: (await login(user.email)).body.refreshToken }
+    await owner('users').where({ id: user.id }).update({ is_active: false })
+
+    const res = await api('POST', '/mobile/auth/refresh', { body })
+    expect(res.status).toBe(403)
+  })
+
+  test('changing the password of a soft deleted account is rejected, not a 500', async () => {
+    const user = await createUser()
+    const headers = await bearer(user)
+    await owner('users')
+      .where({ id: user.id })
+      .update({ deleted_at: owner.fn.now() })
+
+    const res = await api('POST', '/mobile/auth/change-password', {
+      headers,
+      body: { currentPassword: TEST_PASSWORD, password: 'a-brand-new-one' },
+    })
+    expect(res.status).toBe(401)
+  })
 })

@@ -4,6 +4,8 @@ import { bearer } from '../helpers/auth'
 import { api } from '../helpers/request'
 import { owner } from '../helpers/db'
 
+const UNKNOWN_ID = '00000000-0000-0000-0000-000000000000'
+
 const payload = { warmUp: '400m row', skill: 'Snatch', wod: 'Fran' }
 
 describe('read access', () => {
@@ -148,5 +150,45 @@ describe('soft delete', () => {
       headers: await bearer(member),
     })
     expect(res.status).toBe(403)
+  })
+})
+
+describe('error arms', () => {
+  test('an invalid payload on update returns 400 with issues', async () => {
+    const coach = await createUser({ isCoach: true })
+    const id = await createWorkout()
+    const res = await api('PATCH', `/workouts/${id}`, {
+      headers: await bearer(coach),
+      body: { wod: '' },
+    })
+    expect(res.status).toBe(400)
+    expect(res.body.issues.length).toBeGreaterThan(0)
+  })
+
+  test('a malformed json body on update returns 400', async () => {
+    const coach = await createUser({ isCoach: true })
+    const id = await createWorkout()
+    const res = await api('PATCH', `/workouts/${id}`, {
+      headers: await bearer(coach),
+      body: undefined,
+    })
+    expect(res.status).toBe(400)
+  })
+
+  test('updating an unknown workout returns 404', async () => {
+    const coach = await createUser({ isCoach: true })
+    const res = await api('PATCH', `/workouts/${UNKNOWN_ID}`, {
+      headers: await bearer(coach),
+      body: { wod: 'Murph' },
+    })
+    expect(res.status).toBe(404)
+  })
+
+  test('deleting an unknown workout returns 404', async () => {
+    const coach = await createUser({ isCoach: true })
+    const res = await api('DELETE', `/workouts/${UNKNOWN_ID}`, {
+      headers: await bearer(coach),
+    })
+    expect(res.status).toBe(404)
   })
 })

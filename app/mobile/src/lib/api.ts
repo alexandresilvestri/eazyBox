@@ -2,7 +2,7 @@ import { deleteItem, readItem, writeItem } from "@/lib/storage";
 
 const ACCESS_KEY = "eazybox.accessToken";
 const REFRESH_KEY = "eazybox.refreshToken";
-const LOGIN_PATH = "/mobile/auth/login";
+export const LOGIN_PATH = "/mobile/auth/login";
 const REFRESH_PATH = "/mobile/auth/refresh";
 
 export const API_URL =

@@ -32,19 +32,6 @@
         "EXPO_PUBLIC_API_URL": "https://eazybox.com.br"
       }
     },
-    "demo": {
-      "distribution": "internal",
-      "bun": "1.3.14",
-      "android": {
-        "image": "latest",
-        "buildType": "apk"
-      },
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://eazybox.com.br",
-        "EXPO_PUBLIC_DEMO_EMAIL": "demo@eazybox.com.br",
-        "EXPO_PUBLIC_DEMO_PASSWORD": "demo12345"
-      }
-    },
     "production": {
       "autoIncrement": true,
       "bun": "1.3.14",

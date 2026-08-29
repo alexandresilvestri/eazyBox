@@ -25,7 +25,16 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState | null>(null);
 
+const DEMO_EMAIL = process.env.EXPO_PUBLIC_DEMO_EMAIL;
+const DEMO_PASSWORD = process.env.EXPO_PUBLIC_DEMO_PASSWORD;
+
 const fetchMe = () => apiFetch<User>("/mobile/auth/me");
+
+const requestLogin = (email: string, password: string) =>
+  apiFetch<Tokens>("/mobile/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
 
 const loadUser = async () => {
   try {
@@ -38,28 +47,36 @@ const loadUser = async () => {
   }
 };
 
+const loadDemoUser = async () => {
+  if (!DEMO_EMAIL || !DEMO_PASSWORD) return null;
+  try {
+    await saveTokens(await requestLogin(DEMO_EMAIL, DEMO_PASSWORD));
+    return await fetchMe();
+  } catch {
+    return null;
+  }
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    void loadUser().then((me) => {
-      if (!active) return;
-      setUser(me);
-      setLoading(false);
-    });
+    void loadUser()
+      .then((me) => me ?? loadDemoUser())
+      .then((me) => {
+        if (!active) return;
+        setUser(me);
+        setLoading(false);
+      });
     return () => {
       active = false;
     };
   }, []);
 
   async function login(email: string, password: string) {
-    const tokens = await apiFetch<Tokens>("/mobile/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    });
-    await saveTokens(tokens);
+    await saveTokens(await requestLogin(email, password));
     setUser(await fetchMe());
   }
 

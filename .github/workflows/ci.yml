@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ["**"]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -46,6 +50,12 @@ jobs:
         with:
           bun-version-file: .tool-versions
 
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
       - run: bun install --frozen-lockfile
 
       - name: Typecheck all workspaces
@@ -55,10 +65,41 @@ jobs:
         run: bun run lint
         working-directory: app/web
 
+      - name: Format check
+        run: bun run format:check
+        working-directory: app/web
+
+      - name: Mobile lint
+        run: bun run --filter @eazybox/mobile lint
+
       - name: Tests
         run: bun run test
 
   semgrep:
-    if: github.event_name != 'push'
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
     uses: ./.github/workflows/semgrep.yml
     secrets: inherit
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [verify, semgrep]
+    runs-on: ubuntu-latest
+    environment:
+      name: Production
+      url: https://eazybox.com.br
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Deploy
+        run: railway up --service eazyBox --ci
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

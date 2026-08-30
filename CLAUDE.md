@@ -16,7 +16,7 @@ From the repo root:
 | `make typecheck` | `tsc --noEmit` across all workspaces |
 | `make lint` / `make lint-fix` | ESLint over `app/web` |
 | `make format` / `make format-check` | Prettier over `app/web` |
-| `make verify` | The full gate: typecheck, then lint, then the Bun suite |
+| `make verify` | The full gate, and exactly what CI runs: typecheck, lint, format-check, mobile-lint, the Bun suite |
 | `make migrate` | Apply Knex migrations |
 | `make migrate-create <name>` | Scaffold a migration |
 | `make test` / `make test-watch` | Run the Bun suites (`make test` fans out across all workspaces) |
@@ -277,6 +277,16 @@ client/lib/reports.ts     every dashboard and report aggregate, computed in the 
 - Roles come from `/auth/me` (`user.isAdmin` / `user.isCoach`) — the design's Admin/Coach switch was a canvas preview control and is not built. `nav-items.ts` marks the admin-only sections; a coach loses both the tab and the route.
 - Session and day arithmetic comes from `@eazybox/shared` (`shared/core/sessions.ts`), the same helpers the mobile app uses. Do not re-derive `dayKey` / `startsAt` / the check-in window here.
 - No Playwright: `bun test` stays the only runner, and no component renderer is installed. Pure client logic is tested — `lib/reports.ts`, `lib/publish.ts`, `lib/api.ts` and `components/layout/nav-items.ts` live under `client/tests/` at 100%. Anything needing a DOM is verified with `make dev` and a browser, the way the mobile screens are.
+
+# CI and deploy
+
+`.github/workflows/ci.yml` runs `make verify` gate by gate and, in parallel, the reusable `semgrep.yml`. Both must be green before the `deploy` job runs, and `deploy` only runs on a push to `main`. Keep `make verify` and the CI gate list identical — a gate that exists only in CI turns a green local run into a red `main`.
+
+**GitHub Actions owns the deploy trigger; Railway must stay disconnected from the repository.** Railway's own GitHub integration also deploys on every push to `main`, without waiting for CI — that is what this pipeline replaced. It is switched off in the Railway dashboard (service `eazyBox` → Settings → Source), and nothing in the repository can express or restore that, so reconnecting the repo or recreating the service silently brings back an ungated second deploy racing this one.
+
+`railway.json` still owns everything after the trigger: the `preDeployCommand` migration and the `/api/health` check. That seam is deliberate — the migration is versioned next to the migrations it runs, and running it from a runner against production would be worse. Note the consequence: `railway up --ci` returns when the **build** finishes, so a green `deploy` job means the image built, not that the migration and healthcheck passed.
+
+The `main` ruleset requires the `verify` and `semgrep / semgrep` checks but grants the admin role a bypass, so direct pushes to `main` are not blocked. The real production gate is `needs: [verify, semgrep]` on the deploy job, which has no bypass. `main` is therefore not guaranteed green — only production is. Both semgrep jobs carry an explicit `name:` because that ruleset matches the derived `semgrep / semgrep` string, and a required check that never reports is pending forever rather than failing.
 
 # Migrations run on Node, not Bun
 

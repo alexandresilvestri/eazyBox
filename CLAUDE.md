@@ -16,7 +16,7 @@ From the repo root:
 | `make typecheck` | `tsc --noEmit` across all workspaces |
 | `make lint` / `make lint-fix` | ESLint over `app/web` |
 | `make format` / `make format-check` | Prettier over `app/web` |
-| `make verify` | The full gate: typecheck, then lint, then the Bun suite |
+| `make verify` | The full gate, and exactly what CI runs: typecheck, lint, format-check, mobile-lint, the Bun suite |
 | `make migrate` | Apply Knex migrations |
 | `make migrate-create <name>` | Scaffold a migration |
 | `make test` / `make test-watch` | Run the Bun suites (`make test` fans out across all workspaces) |
@@ -277,6 +277,18 @@ client/lib/reports.ts     every dashboard and report aggregate, computed in the 
 - Roles come from `/auth/me` (`user.isAdmin` / `user.isCoach`) — the design's Admin/Coach switch was a canvas preview control and is not built. `nav-items.ts` marks the admin-only sections; a coach loses both the tab and the route.
 - Session and day arithmetic comes from `@eazybox/shared` (`shared/core/sessions.ts`), the same helpers the mobile app uses. Do not re-derive `dayKey` / `startsAt` / the check-in window here.
 - No Playwright: `bun test` stays the only runner, and no component renderer is installed. Pure client logic is tested — `lib/reports.ts`, `lib/publish.ts`, `lib/api.ts` and `components/layout/nav-items.ts` live under `client/tests/` at 100%. Anything needing a DOM is verified with `make dev` and a browser, the way the mobile screens are.
+
+# CI and deploy
+
+`.github/workflows/ci.yml` runs `make verify` gate by gate and, in parallel, the reusable `semgrep.yml`. Keep `make verify` and the CI gate list identical — a gate that exists only in CI turns a green local run into a red `main`.
+
+**Railway deploys, and it already waits for the GitHub check suite.** The `eazyBox` service is connected to this repository and deploys on every push to `main`, but only once the push's checks pass; a failed suite shows in the Railway history as `SKIPPED — CI check suite failed`. So the deploy gate is the CI run itself, and anything added to `ci.yml` becomes part of it automatically — which is what reactivating the Semgrep scan bought. A GitHub Actions deploy job was considered and dropped: it would have raced the integration, and `railway up --ci` returns when the *build* finishes, so it would report success without observing the `preDeployCommand` migration or the healthcheck that Railway's own deploy does observe.
+
+Two consequences follow. A cancelled run is not a passing suite, so the workflow-level `concurrency` must never cancel on `main` — that is what `cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}` protects, and setting it to a bare `true` would silently skip deploys. And a check that never reports leaves the suite pending forever, which is why both Semgrep jobs carry an explicit `name:` rather than relying on job ids.
+
+`railway.json` owns everything after the trigger: the `preDeployCommand` migration and the `/api/health` check. The migration is versioned next to the migrations it runs, and running it from a CI runner against production would be worse.
+
+The `main` ruleset requires the `verify` and `semgrep / semgrep` checks but grants the admin role a bypass, so direct pushes to `main` are not blocked — its job is to give `gh pr merge --auto` something to wait on in `dependabot-auto-merge.yml`. It matches the derived `semgrep / semgrep` string, so renaming either job breaks it.
 
 # Migrations run on Node, not Bun
 

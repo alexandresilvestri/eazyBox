@@ -41,7 +41,7 @@ format:
 format-check:
 	bun run --filter @eazybox/web format:check
 
-verify: typecheck lint test
+verify: typecheck lint format-check mobile-lint test
 
 test:
 	bun run test

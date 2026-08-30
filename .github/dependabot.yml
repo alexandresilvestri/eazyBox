@@ -7,10 +7,12 @@ updates:
       day: monday
     open-pull-requests-limit: 10
     groups:
-      minor-and-patch:
+      patch:
+        update-types:
+          - patch
+      minor:
         update-types:
           - minor
-          - patch
     ignore:
       - dependency-name: react-native
       - dependency-name: react-native-worklets

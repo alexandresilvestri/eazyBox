@@ -55,7 +55,14 @@ export default function HomeScreen() {
           <Text style={styles.greeting}>Olá, {user?.firstName}</Text>
         </View>
         {user ? (
-          <Avatar label={initials(user.firstName, user.lastName)} />
+          <Pressable
+            onPress={() => router.navigate("/perfil")}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Abrir perfil"
+          >
+            <Avatar label={initials(user.firstName, user.lastName)} />
+          </Pressable>
         ) : null}
       </View>
 

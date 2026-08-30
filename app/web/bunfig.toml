@@ -11,5 +11,6 @@ coveragePathIgnorePatterns = [
   "server/tests/**",
   "../../shared/**",
   "server/errors/index.ts",
+  "server/db/migrations/**",
 ]
 coverageThreshold = { lines = 0.88, functions = 0.75 }

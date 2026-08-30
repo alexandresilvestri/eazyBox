@@ -1,7 +1,10 @@
 name: Semgrep
 
 on:
-  workflow_call: {}
+  workflow_call:
+    secrets:
+      SEMGREP_APP_TOKEN:
+        required: true
   schedule:
     - cron: "0 3 * * 1"
 

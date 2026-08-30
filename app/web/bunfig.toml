@@ -7,4 +7,9 @@ preload = ["./server/tests/helpers/env.ts", "./server/tests/setup.ts"]
 coverage = true
 coverageSkipTestFiles = true
 coverageReporter = ["text"]
-coveragePathIgnorePatterns = ["server/tests/**"]
+coveragePathIgnorePatterns = [
+  "server/tests/**",
+  "../../shared/**",
+  "server/errors/index.ts",
+]
+coverageThreshold = { lines = 0.88, functions = 0.75 }

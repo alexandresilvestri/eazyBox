@@ -19,7 +19,7 @@ From the repo root:
 | `make verify` | The full gate: typecheck, then lint, then the Bun suite |
 | `make migrate` | Apply Knex migrations |
 | `make migrate-create <name>` | Scaffold a migration |
-| `make test` / `make test-watch` | Run the Bun test suite |
+| `make test` / `make test-watch` | Run the Bun suites (`make test` fans out across all workspaces) |
 | `make pgcli` | Open a psql session |
 | `make admin` | Bootstrap the first admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD` |
 | `make seed` | Wipe the dev database and refill it with fictional data |
@@ -30,9 +30,19 @@ From the repo root:
 
 Every target is a thin delegation to a workspace script, so the underlying commands still work directly — from `app/web`: `bun run lint`, `bun run lint:fix`, `bun run format`, `bun run typecheck`.
 
-Tests are `bun test`. There is no second runner. `app/web/bunfig.toml` preloads `server/tests/setup.ts`, which creates `eazybox_test`, migrates it, and truncates between tests. The suite shares one database, so it **must** run serially — `bun run test` passes `--parallel=1`. Bare `bun test` runs files in parallel workers and they will wipe each other's fixtures.
+Tests are `bun test`. There is no second runner. `bun run test` from the root fans out across every workspace: `@eazybox/shared`, `@eazybox/mobile`, and `@eazybox/web` (which runs the server suite, then `test:client`).
 
-`bunfig.toml` sets `[test] root = "./server"`. Every test currently lives under `server/tests/`, so it changes nothing today — it is there so a stray spec added elsewhere in the workspace never joins the suite silently. `preload` resolves relative to `bunfig.toml`, not to `root`.
+`app/web/bunfig.toml` preloads `server/tests/helpers/env.ts` **then** `server/tests/setup.ts`. That order is load-bearing: `setup.ts` pulls in `helpers/db.ts`, which imports `server/redis.ts`, and `redis.ts` reads `REDIS_URL` at module construction. If `env.ts` has not run first, its `??=` default of db `1` never applies and the suite's `afterEach` `FLUSHDB` hits db `0` — the database `make dev` uses — wiping dev refresh and password-reset tokens. Preloading `env.ts` explicitly makes that immune to import reordering.
+
+`setup.ts` creates `eazybox_test`, migrates it, truncates between tests, and installs the Resend stub. The suite shares one database, so it **must** run serially — `bun run test` passes `--parallel=1`. Bare `bun test` runs files in parallel workers and they will wipe each other's fixtures.
+
+`app/web/bunfig.toml` sets `[test] root = "./server"`, so the server suite never picks up a stray spec elsewhere in the workspace. `preload` resolves relative to `bunfig.toml`, not to `root`. The panel has its own scope: `app/web/client/bunfig.toml`, run by `test:client` with cwd `client/`, so the DB preload cannot leak into pure client tests. `shared/` and `app/mobile/` each have a `bunfig.toml` of their own for the same reason.
+
+**Mail never leaves the process.** `helpers/env.ts` sets `RESEND_API_KEY` / `RESEND_FROM` / `APP_URL`, and `setup.ts` calls `stubMail()` once, which swaps `globalThis.fetch` for calls to `RESEND_ENDPOINT` only. Assert on `mailbox` / `lastMail()`, force a provider failure with `failNextMail(status)`. Without the stub the vars would make the suite POST to the real Resend API; without the vars `mail.ts` throws and `services/auth.ts` swallows it, which is how the forgot-password tests once passed with the mail path never running.
+
+**`bun test` forces `TZ=UTC`** regardless of the machine, and the app runs at UTC−3. Date logic tested only under UTC is tested in the one offset where a day cannot shift, so the pure suites (`shared`, `client`, `mobile`) run twice — `TZ=UTC` then `TZ=America/Sao_Paulo`. The server suite runs once; it touches Postgres and doubling it is not worth 11s.
+
+Coverage is on by default in every scope, with per-file `coverageThreshold` floors. Two Bun quirks to know: the threshold is **per file**, not a total, so one weak file fails the run; and giving only `lines` still enforces a default `functions` bar, so set both explicitly. `server/errors/index.ts` is excluded because Bun reports implicit constructors as uncovered even when tests construct every class, and each workspace excludes `shared/**` since `shared` is gated by its own suite.
 
 `bun run --filter @eazybox/web admin:create` bootstraps the first admin from `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 
@@ -266,7 +276,7 @@ client/lib/reports.ts     every dashboard and report aggregate, computed in the 
 - react-router is pinned to **7.x**. 8.x requires react `>=19.2.7` while Expo SDK 57 pins react to `19.2.3`, so 8.x installs a second React into `node_modules/react-router/node_modules` and every hook throws `Cannot read properties of null (reading 'useRef')`.
 - Roles come from `/auth/me` (`user.isAdmin` / `user.isCoach`) — the design's Admin/Coach switch was a canvas preview control and is not built. `nav-items.ts` marks the admin-only sections; a coach loses both the tab and the route.
 - Session and day arithmetic comes from `@eazybox/shared` (`shared/core/sessions.ts`), the same helpers the mobile app uses. Do not re-derive `dayKey` / `startsAt` / the check-in window here.
-- No Playwright: `bun test` stays the only runner. Verify the panel with `make dev` and a browser, the way the mobile screens are verified.
+- No Playwright: `bun test` stays the only runner, and no component renderer is installed. Pure client logic is tested — `lib/reports.ts`, `lib/publish.ts`, `lib/api.ts` and `components/layout/nav-items.ts` live under `client/tests/` at 100%. Anything needing a DOM is verified with `make dev` and a browser, the way the mobile screens are.
 
 # Migrations run on Node, not Bun
 

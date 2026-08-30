@@ -22,7 +22,7 @@ import { CheckCircleIcon, ClockIcon } from "@/components/ui/icons";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Screen } from "@/components/ui/screen";
 import { Section, SectionHeader } from "@/components/ui/section";
-import { colors, radius, text } from "@/constants/theme";
+import { colors, MAX_FONT_SCALE, radius, text } from "@/constants/theme";
 import { apiFetch } from "@/lib/api";
 import { useBox } from "@/lib/box";
 import { countdown } from "@/lib/format";
@@ -107,16 +107,36 @@ export default function CheckinScreen() {
               <View>
                 <Text style={text.label}>Vagas ocupadas</Text>
                 <View style={styles.countRow}>
-                  <Text style={text.display}>{target.occupied}</Text>
-                  <Text style={styles.total}>/ {target.capacity}</Text>
+                  <Text
+                    style={text.display}
+                    maxFontSizeMultiplier={MAX_FONT_SCALE}
+                  >
+                    {target.occupied}
+                  </Text>
+                  <Text
+                    style={styles.total}
+                    maxFontSizeMultiplier={MAX_FONT_SCALE}
+                  >
+                    / {target.capacity}
+                  </Text>
                 </View>
               </View>
               <View style={styles.cardMeta}>
-                <Text style={text.bodyStrong}>
+                <Text
+                  style={styles.cardMetaTitle}
+                  numberOfLines={2}
+                  maxFontSizeMultiplier={MAX_FONT_SCALE}
+                >
                   {workout ? parseWod(workout.wod).name : "Treino a definir"}
                 </Text>
                 {coach ? (
-                  <Text style={text.meta}>Coach {coach.firstName}</Text>
+                  <Text
+                    style={text.meta}
+                    numberOfLines={1}
+                    maxFontSizeMultiplier={MAX_FONT_SCALE}
+                  >
+                    Coach {coach.firstName}
+                  </Text>
                 ) : null}
               </View>
             </View>
@@ -135,10 +155,14 @@ export default function CheckinScreen() {
                     ? `Te vejo às ${hourLabel(target.time)}. Chegue 10 min antes.`
                     : BANNERS[state].detail}
                 </Text>
+                {!mine && state === "early" ? (
+                  <View style={styles.bannerBadge}>
+                    <Badge
+                      label={`Abre em ${countdown(opensAt(target), now)}`}
+                    />
+                  </View>
+                ) : null}
               </View>
-              {!mine && state === "early" ? (
-                <Badge label={`Abre em ${countdown(opensAt(target), now)}`} />
-              ) : null}
             </View>
 
             {mine ? (
@@ -218,15 +242,20 @@ const styles = StyleSheet.create({
     color: colors.ink3,
   },
   cardMeta: {
+    flexShrink: 1,
     alignItems: "flex-end",
     gap: 2,
+  },
+  cardMetaTitle: {
+    ...text.bodyStrong,
+    textAlign: "right",
   },
   stateBlock: {
     gap: 12,
   },
   banner: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 12,
     backgroundColor: colors.card,
     borderRadius: radius.card,
@@ -247,6 +276,9 @@ const styles = StyleSheet.create({
   },
   bannerDetail: {
     ...text.meta,
+  },
+  bannerBadge: {
+    marginTop: 8,
   },
   attendee: {
     flexDirection: "row",

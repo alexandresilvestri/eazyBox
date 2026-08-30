@@ -77,23 +77,3 @@ jobs:
     secrets:
       SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
 
-  deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [verify, semgrep]
-    runs-on: ubuntu-latest
-    environment:
-      name: Production
-      url: https://eazybox.com.br
-    concurrency:
-      group: deploy-production
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Install Railway CLI
-        run: npm i -g @railway/cli@5.45.10
-
-      - name: Deploy
-        run: railway up --service eazyBox --ci
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

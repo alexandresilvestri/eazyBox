@@ -280,13 +280,15 @@ client/lib/reports.ts     every dashboard and report aggregate, computed in the 
 
 # CI and deploy
 
-`.github/workflows/ci.yml` runs `make verify` gate by gate and, in parallel, the reusable `semgrep.yml`. Both must be green before the `deploy` job runs, and `deploy` only runs on a push to `main`. Keep `make verify` and the CI gate list identical — a gate that exists only in CI turns a green local run into a red `main`.
+`.github/workflows/ci.yml` runs `make verify` gate by gate and, in parallel, the reusable `semgrep.yml`. Keep `make verify` and the CI gate list identical — a gate that exists only in CI turns a green local run into a red `main`.
 
-**GitHub Actions owns the deploy trigger; Railway must stay disconnected from the repository.** Railway's own GitHub integration also deploys on every push to `main`, without waiting for CI — that is what this pipeline replaced. It is switched off in the Railway dashboard (service `eazyBox` → Settings → Source), and nothing in the repository can express or restore that, so reconnecting the repo or recreating the service silently brings back an ungated second deploy racing this one.
+**Railway deploys, and it already waits for the GitHub check suite.** The `eazyBox` service is connected to this repository and deploys on every push to `main`, but only once the push's checks pass; a failed suite shows in the Railway history as `SKIPPED — CI check suite failed`. So the deploy gate is the CI run itself, and anything added to `ci.yml` becomes part of it automatically — which is what reactivating the Semgrep scan bought. A GitHub Actions deploy job was considered and dropped: it would have raced the integration, and `railway up --ci` returns when the *build* finishes, so it would report success without observing the `preDeployCommand` migration or the healthcheck that Railway's own deploy does observe.
 
-`railway.json` still owns everything after the trigger: the `preDeployCommand` migration and the `/api/health` check. That seam is deliberate — the migration is versioned next to the migrations it runs, and running it from a runner against production would be worse. Note the consequence: `railway up --ci` returns when the **build** finishes, so a green `deploy` job means the image built, not that the migration and healthcheck passed.
+Two consequences follow. A cancelled run is not a passing suite, so the workflow-level `concurrency` must never cancel on `main` — that is what `cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}` protects, and setting it to a bare `true` would silently skip deploys. And a check that never reports leaves the suite pending forever, which is why both Semgrep jobs carry an explicit `name:` rather than relying on job ids.
 
-The `main` ruleset requires the `verify` and `semgrep / semgrep` checks but grants the admin role a bypass, so direct pushes to `main` are not blocked. The real production gate is `needs: [verify, semgrep]` on the deploy job, which has no bypass. `main` is therefore not guaranteed green — only production is. Both semgrep jobs carry an explicit `name:` because that ruleset matches the derived `semgrep / semgrep` string, and a required check that never reports is pending forever rather than failing.
+`railway.json` owns everything after the trigger: the `preDeployCommand` migration and the `/api/health` check. The migration is versioned next to the migrations it runs, and running it from a CI runner against production would be worse.
+
+The `main` ruleset requires the `verify` and `semgrep / semgrep` checks but grants the admin role a bypass, so direct pushes to `main` are not blocked — its job is to give `gh pr merge --auto` something to wait on in `dependabot-auto-merge.yml`. It matches the derived `semgrep / semgrep` string, so renaming either job breaks it.
 
 # Migrations run on Node, not Bun
 

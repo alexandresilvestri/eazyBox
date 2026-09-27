@@ -2,7 +2,7 @@
 
 # app/mobile — the student app
 
-Expo Router + React Native, Expo SDK 57. Bun installs; the Expo CLI runs on Node. `make mobile` starts the dev server, `make mobile-lint` / `make mobile-typecheck` are the gates. `EXPO_PUBLIC_API_URL` points at the API (see `.env.example`); on a device it must be the LAN address, not `localhost`.
+Expo Router + React Native, Expo SDK 57. Bun installs; the Expo CLI runs on Node. `make mobile` starts the dev server, `make mobile-lint` / `make mobile-typecheck` are the gates. `EXPO_PUBLIC_API_URL` points at the API (see `.env.example`); on a device it must be the LAN address, not `localhost`. Metro inlines that variable at bundle time, so a build reads it from the `eas.json` profile and never from `.env`: `preview` and `production` target `https://eazybox.com.br`, `staging` targets `https://staging.eazybox.com.br`, and only `preview` and `staging` emit an APK.
 
 ```
 src/app/                expo-router routes

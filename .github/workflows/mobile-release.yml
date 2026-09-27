@@ -9,6 +9,7 @@ on:
         default: preview
         options:
           - preview
+          - staging
           - production
       platform:
         description: Target platform

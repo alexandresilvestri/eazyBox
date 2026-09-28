@@ -27,7 +27,7 @@
     "@hono/zod-validator": "^0.9.1",
     "@radix-ui/react-dialog": "^1.1.23",
     "@radix-ui/react-select": "^2.3.7",
-    "@sentry/bun": "^10.75.3",
+    "@sentry/bun": "^11.0.0",
     "bun-plugin-tailwind": "^0.1.2",
     "camelcase-keys": "^10.0.3",
     "class-variance-authority": "^0.7.1",
